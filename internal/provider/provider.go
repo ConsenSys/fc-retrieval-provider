@@ -17,6 +17,7 @@ type Provider struct {
 
 // Register data model
 type Register struct {
+	NodeID         string
 	Address        string
 	NetworkInfo    string
 	RegionCode     string

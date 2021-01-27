@@ -9,6 +9,7 @@ import (
 func Registration(url string, p *Provider) {
 
 	providerReg := Register{
+		NodeID:         p.conf.GetString("PROVIDER_ID"),
 		Address:        p.conf.GetString("PROVIDER_ADDRESS"),
 		NetworkInfo:    p.conf.GetString("PROVIDER_NETWORK_INFO"),
 		RegionCode:     p.conf.GetString("PROVIDER_REGION_CODE"),

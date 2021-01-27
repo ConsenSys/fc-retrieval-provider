@@ -16,6 +16,8 @@ github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym
 github.com/ConsenSys/fc-retrieval-gateway v0.0.0-20210122073456-89eb6459e1f9 h1:7ObwPQq9rK6Mz2Krq58hVnDK4HPBp5zJOYVzsg0opvM=
 github.com/ConsenSys/fc-retrieval-gateway v0.0.0-20210122073456-89eb6459e1f9/go.mod h1:jStgGs5uwGIenRmFMK9sGiM+VyBAeRm9e4RC3zK830A=
 github.com/ConsenSys/fc-retrieval-gateway v0.0.0-20210125093619-9be7cf72032c h1:1k/PTncaiWSBY+NfKh3/pLzUpwq/L/+iYUmdA5s+Qpg=
+github.com/ConsenSys/fc-retrieval-gateway v0.0.0-20210126145216-8d052777c533 h1:K4yUSKMh3Qv6DuYkkTJ5YMFxfPbVbbAXvky9zfb4gi0=
+github.com/ConsenSys/fc-retrieval-gateway v0.0.0-20210126145216-8d052777c533/go.mod h1:jStgGs5uwGIenRmFMK9sGiM+VyBAeRm9e4RC3zK830A=
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=
 github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc/go.mod h1:LOuyumcjzFXgccqObfd/Ljyb9UuFJ6TxHnclSeseNhc=
 github.com/alecthomas/units v0.0.0-20151022065526-2efee857e7cf/go.mod h1:ybxpYRFXyAe+OPACYpWeL0wqObRcbAqCMya13uyzqw0=
