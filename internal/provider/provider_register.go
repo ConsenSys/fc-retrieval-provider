@@ -3,12 +3,13 @@ package provider
 import (
 	log "github.com/ConsenSys/fc-retrieval-gateway/pkg/logging"
 	"github.com/ConsenSys/fc-retrieval-gateway/pkg/request"
+	"github.com/ConsenSys/fc-retrieval-register/pkg/register"
 )
 
-// Register a provider
+// Registration for a provider
 func Registration(url string, p *Provider) {
 
-	providerReg := Register{
+	providerReg := register.ProviderRegister{
 		NodeID:         p.conf.GetString("PROVIDER_ID"),
 		Address:        p.conf.GetString("PROVIDER_ADDRESS"),
 		NetworkInfo:    p.conf.GetString("PROVIDER_NETWORK_INFO"),

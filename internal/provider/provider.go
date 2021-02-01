@@ -7,22 +7,13 @@ import (
 	log "github.com/ConsenSys/fc-retrieval-gateway/pkg/logging"
 	"github.com/ConsenSys/fc-retrieval-gateway/pkg/request"
 	"github.com/ConsenSys/fc-retrieval-provider/internal/gateway"
+	"github.com/ConsenSys/fc-retrieval-register/pkg/register"
 	"github.com/spf13/viper"
 )
 
 // Provider configuration
 type Provider struct {
 	conf *viper.Viper
-}
-
-// Register data model
-type Register struct {
-	NodeID         string
-	Address        string
-	NetworkInfo    string
-	RegionCode     string
-	RootSigningKey string
-	SigingKey      string
 }
 
 // NewProvider returns new provider
@@ -48,7 +39,7 @@ func (p *Provider) loop() {
 	url := p.conf.GetString("REGISTER_API_URL") + "/registers/gateway"
 
 	for {
-		gateways := []Register{}
+		gateways := []register.GatewayRegister{}
 		request.GetJSON(url, &gateways)
 
 		if len(gateways) == 0 {
@@ -58,7 +49,7 @@ func (p *Provider) loop() {
 		for _, gw := range gateways {
 			message := generateDummyMessage()
 			fmt.Println(message)
-			gwURL := gw.NetworkInfo
+			gwURL := gw.NetworkProviderInfo
 			gateway.SendMessage(gwURL, message)
 		}
 		time.Sleep(25 * time.Second)
