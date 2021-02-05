@@ -1,9 +1,15 @@
 package provider
 
 import (
+	"math/big"
 	"time"
 
+	"github.com/ConsenSys/fc-retrieval-gateway/pkg/cid"
+	"github.com/ConsenSys/fc-retrieval-gateway/pkg/cidoffer"
+	"github.com/ConsenSys/fc-retrieval-gateway/pkg/fcrcrypto"
+	"github.com/ConsenSys/fc-retrieval-gateway/pkg/fcrmessages"
 	"github.com/ConsenSys/fc-retrieval-gateway/pkg/fcrtcpcomms"
+	"github.com/ConsenSys/fc-retrieval-gateway/pkg/logging"
 	log "github.com/ConsenSys/fc-retrieval-gateway/pkg/logging"
 	"github.com/ConsenSys/fc-retrieval-gateway/pkg/nodeid"
 	"github.com/ConsenSys/fc-retrieval-provider/internal/gateway"
@@ -12,7 +18,7 @@ import (
 
 // Provider configuration
 type Provider struct {
-	Conf 						*viper.Viper
+	Conf            *viper.Viper
 	GatewayCommPool *fcrtcpcomms.CommunicationPool
 }
 
@@ -20,8 +26,8 @@ type Provider struct {
 func NewProvider(conf *viper.Viper) *Provider {
 	gatewayCommPool := fcrtcpcomms.NewCommunicationPool()
 	return &Provider{
-		Conf: 						conf,
-		GatewayCommPool: 	&gatewayCommPool,
+		Conf:            conf,
+		GatewayCommPool: &gatewayCommPool,
 	}
 }
 
@@ -51,23 +57,61 @@ func (provider *Provider) registration() {
 
 // Start infinite loop
 func (provider *Provider) loop() {
+	key, _ := fcrcrypto.DecodePrivateKey("01d669ab849c3baf0491f581f498560e46d8c10571a673fd19d638389f383061a4")
+	keyVersion := fcrcrypto.InitialKeyVersion()
+
+	// My gateway address at port 8090, id 11000
+	gatewayAddr := "localhost:8090"
+	gatewayID, _ := nodeid.NewNodeID(big.NewInt(11000))
+	provider.GatewayCommPool.RegisterNodeAddress(gatewayID, gatewayAddr)
+
+	// My provider ID, 12000
+	providerID, _ := nodeid.NewNodeID(big.NewInt(12000))
+
+	time.Sleep(5 * time.Second)
 	for {
-		gateways, err := GetRegisteredGateways(provider.Conf)
+		// Generate a random cid offer with five random cids
+		cid1, _ := cid.NewRandomContentID()
+		cid2, _ := cid.NewRandomContentID()
+		cid3, _ := cid.NewRandomContentID()
+		cid4, _ := cid.NewRandomContentID()
+		cid5, _ := cid.NewRandomContentID()
+		offer, err := cidoffer.NewCidGroupOffer(providerID, &[]cid.ContentID{*cid1, *cid2, *cid3, *cid4, *cid5}, 100, time.Now().Add(time.Hour*5).Unix(), 100)
 		if err != nil {
-			log.Error("Unable to get registered gateways: %v", err)
-			//TODO graceful exit
+			log.Error("Error in generating the cid offer.")
+			continue
 		}
-		for _, gw := range gateways {
-			message := generateDummyMessage()
-			log.Info("Message: %v", message)
-			gatewayID, err := nodeid.NewNodeIDFromString(gw.NodeID)
-			if err != nil {
-				log.Error("Error with nodeID %v: %v", gw.NodeID, err)
-				continue
-			}
-			provider.GatewayCommPool.RegisterNodeAddress(gatewayID, gw.NetworkProviderInfo)
-			gateway.SendMessage(message, gatewayID, provider.GatewayCommPool)
+		logging.Info("Offer created with merkle root %s", offer.MerkleRoot)
+		time.Sleep(3 * time.Second)
+
+		// Sign offer
+		offer.SignOffer(func(msg interface{}) (string, error) {
+			return fcrcrypto.SignMessage(key, keyVersion, msg)
+		})
+		logging.Info("Offer signed with signature: %s", offer.Signature)
+		time.Sleep(3 * time.Second)
+
+		// Scenario 1, wrong signature
+		// offer.Signature = offer.Signature[:10] + string((offer.Signature[10] + 1)) + offer.Signature[11:]
+		// logging.Info("Signature changed.")
+
+		// Scenario 2, swap cid.
+		// cid6, _ := cid.NewRandomContentID()
+		// offer.Cids[0] = *cid6
+		// logging.Info("CID swapped.")
+
+		request, err := fcrmessages.EncodeProviderPublishGroupCIDRequest(1, offer)
+		if err != nil {
+			log.Error("Error in generating the request.")
+			continue
 		}
-		time.Sleep(25 * time.Second)
+
+		logging.Info("Sending offer...")
+		time.Sleep(3 * time.Second)
+		gateway.SendMessage(request, gatewayID, provider.GatewayCommPool)
+		logging.Info("Offer sent.")
+
+		// Sleep
+		time.Sleep(10 * time.Second)
 	}
 }
