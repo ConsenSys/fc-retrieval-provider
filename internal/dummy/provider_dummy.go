@@ -1,4 +1,4 @@
-package provider
+package dummy
 
 import (
 	"math/rand"
@@ -11,7 +11,8 @@ import (
 	"github.com/ConsenSys/fc-retrieval-gateway/pkg/nodeid"
 )
 
-func generateDummyMessage() *fcrmessages.FCRMessage {
+// GenerateDummyMessage is cool
+func GenerateDummyMessage() *fcrmessages.FCRMessage {
 	providerID, _ := nodeid.NewRandomNodeID()
 	expiryDate := time.Now().Local().Add(time.Hour * time.Duration(24)).Unix()
 	contentID, _ := cid.NewRandomContentID()
