@@ -3,12 +3,15 @@ package provider
 import (
 	"time"
 
+	"github.com/spf13/viper"
+
 	"github.com/ConsenSys/fc-retrieval-gateway/pkg/fcrtcpcomms"
 	log "github.com/ConsenSys/fc-retrieval-gateway/pkg/logging"
 	"github.com/ConsenSys/fc-retrieval-gateway/pkg/nodeid"
-	"github.com/ConsenSys/fc-retrieval-provider/internal/gateway"
 	"github.com/ConsenSys/fc-retrieval-register/pkg/register"
-	"github.com/spf13/viper"
+
+	"github.com/ConsenSys/fc-retrieval-provider/internal/dummy"
+	"github.com/ConsenSys/fc-retrieval-provider/internal/gateway"
 )
 
 // Provider configuration
@@ -65,7 +68,7 @@ func (provider *Provider) loop() {
 			log.Error("Unable to get registered gateways: %v", err)
 		}
 		for _, gw := range gateways {
-			message := generateDummyMessage()
+			message := dummy.GenerateDummyMessage()
 			log.Info("Message: %v", message)
 			gatewayID, err := nodeid.NewNodeIDFromString(gw.NodeID)
 			if err != nil {

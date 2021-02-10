@@ -5,7 +5,7 @@ import (
 	_ "github.com/joho/godotenv/autoload"
 
 	"github.com/ConsenSys/fc-retrieval-provider/config"
-	"github.com/ConsenSys/fc-retrieval-provider/internal/provider"
+	"github.com/ConsenSys/fc-retrieval-provider/pkg/provider"
 )
 
 // Start Provider service
