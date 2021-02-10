@@ -1,18 +1,23 @@
 PORT ?= 9030
-REGISTRY?=consensys/
 VERSION?=dev
+IMAGE?=consensys/fc-retrieval-register
 
 .PHONY: build build-dev start start-dev stop
 
+default: clean build push
+
 build:
-	docker build -t ${REGISTRY}fc-retrieval-provider:${VERSION} .
+	docker build -t ${IMAGE}:${VERSION} .
 
 build-dev:
 	go build -v cmd/provider/main.go
 
+push:
+	cd scripts; bash push.sh ${VERSION} ${IMAGE}:${VERSION}
+
 clean:
-	docker rm -f ${REGISTRY}fc-retrieval-provider:${VERSION} 2> /dev/null || true
-	docker rmi -f "${REGISTRY}fc-retrieval-provider:${VERSION}" || true
+	docker rm -f ${IMAGE}:${VERSION} 2> /dev/null || true
+	docker rmi -f "${IMAGE}:${VERSION}" || true
 
 start:
 	docker-compose up -d
