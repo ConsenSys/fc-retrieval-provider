@@ -5,13 +5,13 @@ import (
 
 	"github.com/spf13/viper"
 
+	"github.com/ConsenSys/fc-retrieval-gateway/pkg/fcrmessages"
 	"github.com/ConsenSys/fc-retrieval-gateway/pkg/fcrtcpcomms"
 	log "github.com/ConsenSys/fc-retrieval-gateway/pkg/logging"
 	"github.com/ConsenSys/fc-retrieval-gateway/pkg/nodeid"
 	"github.com/ConsenSys/fc-retrieval-register/pkg/register"
 
 	"github.com/ConsenSys/fc-retrieval-provider/internal/dummy"
-	"github.com/ConsenSys/fc-retrieval-provider/internal/gateway"
 )
 
 // Provider configuration
@@ -60,6 +60,39 @@ func (provider *Provider) registration() {
 	}
 }
 
+// SendMessageToGateway to gateway
+func SendMessageToGateway(message *fcrmessages.FCRMessage, nodeID *nodeid.NodeID, gCommPool *fcrtcpcomms.CommunicationPool) error {
+	gComm, err := gCommPool.GetConnForRequestingNode(nodeID)
+	if err != nil {
+		log.Error("Connection issue: %v", err)
+		if gComm != nil {
+			log.Debug("Closing connection ...")
+			gComm.Conn.Close()
+		}
+		log.Debug("Removing connection from pool ...")
+		gCommPool.DeregisterNodeCommunication(nodeID)
+		return err
+	}
+	gComm.CommsLock.Lock()
+	defer gComm.CommsLock.Unlock()
+	log.Info("Send message to: %v, message: %v", nodeID.ToString(), message)
+	err = fcrtcpcomms.SendTCPMessage(
+		gComm.Conn,
+		message,
+		30000)
+	if err != nil {
+		log.Error("Message not sent: %v", err)
+		if gComm != nil {
+			log.Debug("Closing connection ...")
+			gComm.Conn.Close()
+		}
+		log.Debug("Removing connection from pool ...")
+		gCommPool.DeregisterNodeCommunication(nodeID)
+		return err
+	}
+	return nil
+}
+
 // Start infinite loop
 func (provider *Provider) loop() {
 	for {
@@ -76,7 +109,7 @@ func (provider *Provider) loop() {
 				continue
 			}
 			provider.GatewayCommPool.RegisterNodeAddress(gatewayID, gw.NetworkProviderInfo)
-			gateway.SendMessage(message, gatewayID, provider.GatewayCommPool)
+			SendMessageToGateway(message, gatewayID, provider.GatewayCommPool)
 		}
 		time.Sleep(25 * time.Second)
 	}
