@@ -21,7 +21,7 @@ jobs:
       - name: Build Docker image
         run: |
           registry=$(echo "$docker_registry/${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
-          make build REGISTRY=$registry/ VERSION=$docker_image_version
+          docker build -t $registry/$docker_image_name:$docker_image_version .
       - name: Login to GitHub Packages
         uses: docker/login-action@v1
         with:
