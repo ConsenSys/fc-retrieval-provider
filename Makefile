@@ -4,7 +4,7 @@ IMAGE?=consensys/fc-retrieval-register
 
 .PHONY: build build-dev start start-dev stop
 
-default: clean build push
+default: clean build tag
 
 build:
 	docker build -t ${IMAGE}:${VERSION} .
@@ -14,6 +14,9 @@ build-dev:
 
 push:
 	cd scripts; bash push.sh ${VERSION} ${IMAGE}:${VERSION}
+
+tag:
+	cd scripts; bash tag.sh ${VERSION} ${IMAGE}:${VERSION}
 
 clean:
 	docker rm -f ${IMAGE}:${VERSION} 2> /dev/null || true
