@@ -5,6 +5,7 @@ import (
 	_ "github.com/joho/godotenv/autoload"
 
 	"github.com/ConsenSys/fc-retrieval-provider/config"
+	"github.com/ConsenSys/fc-retrieval-provider/internal/adminapi"
 	"github.com/ConsenSys/fc-retrieval-provider/pkg/provider"
 )
 
@@ -15,5 +16,13 @@ func main() {
 
 	log.Info("Start Provider service...")
 	p := provider.NewProvider(conf)
-	p.Start()
+	
+	err := adminapi.StartAdminAPI(p)
+	if err != nil {
+		log.Error("Error starting admin tcp server: %s", err.Error())
+		return
+	}
+
+	// Wait forever.
+	select {}
 }
