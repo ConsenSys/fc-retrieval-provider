@@ -32,7 +32,7 @@ func NewProvider(conf *viper.Viper) *Provider {
 // Start a provider
 func (provider *Provider) Start() {
 	provider.greet()
-	provider.registration()
+	// provider.registration()
 	provider.loop()
 }
 
@@ -45,7 +45,7 @@ func (provider *Provider) greet() {
 }
 
 // Register the provider
-func (provider *Provider) registration() {
+func (provider *Provider) Registration() {
 	reg := register.ProviderRegister{
 		Address:        provider.Conf.GetString("PROVIDER_ADDRESS"),
 		NetworkInfo:    provider.Conf.GetString("PROVIDER_NETWORK_INFO"),

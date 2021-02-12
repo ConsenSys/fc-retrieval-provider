@@ -16,7 +16,8 @@ func main() {
 
 	log.Info("Start Provider service...")
 	p := provider.NewProvider(conf)
-	
+	p.Registration()
+
 	err := adminapi.StartAdminAPI(p)
 	if err != nil {
 		log.Error("Error starting admin tcp server: %s", err.Error())

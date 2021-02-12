@@ -20,9 +20,12 @@ import (
 	"net"
 	"time"
 
+	"github.com/ConsenSys/fc-retrieval-gateway/pkg/fcrmessages"
 	"github.com/ConsenSys/fc-retrieval-gateway/pkg/fcrtcpcomms"
 	"github.com/ConsenSys/fc-retrieval-gateway/pkg/logging"
+	"github.com/ConsenSys/fc-retrieval-gateway/pkg/nodeid"
 	"github.com/ConsenSys/fc-retrieval-provider/pkg/provider"
+	"github.com/ConsenSys/fc-retrieval-provider/internal/register"
 )
 
 // StartAdminAPI starts the TCP API as a separate go routine.
@@ -64,31 +67,15 @@ func handleIncomingAdminConnection(conn net.Conn, p *provider.Provider) {
 		// Respond to requests for a client's reputation.
 		if err == nil {
 			fmt.Printf("Message: %+v\n", message)
-			// if message.MessageType == fcrmessages.AdminGetReputationChallengeType {
-			// 	err = handleAdminGetReputationChallenge(conn, message)
-			// 	if err != nil && !fcrtcpcomms.IsTimeoutError(err) {
-			// 		// Error in tcp communication, drop the connection.
-			// 		logging.Error1(err)
-			// 		return
-			// 	}
-			// 	continue
-			// } else if message.MessageType == fcrmessages.AdminSetReputationChallengeType {
-			// 	err = handleAdminSetReputationChallenge(conn, message)
-			// 	if err != nil && !fcrtcpcomms.IsTimeoutError(err) {
-			// 		// Error in tcp communication, drop the connection.
-			// 		logging.Error1(err)
-			// 		return
-			// 	}
-			// 	continue
-			// } else if message.MessageType == fcrmessages.AdminAcceptKeyChallengeType {
-			// 	err = handleAdminAcceptKeysChallenge(conn, message)
-			// 	if err != nil && !fcrtcpcomms.IsTimeoutError(err) {
-			// 		// Error in tcp communication, drop the connection.
-			// 		logging.Error1(err)
-			// 		return
-			// 	}
-			// 	continue
-			// }
+			if message.MessageType == fcrmessages.ProviderPublishGroupCIDRequestType {
+				err = handleProviderPublishGroupCID(conn, p, message)
+				if err != nil && !fcrtcpcomms.IsTimeoutError(err) {
+					// Error in tcp communication, drop the connection.
+					logging.Error1(err)
+					return
+				}
+				continue
+			}
 		}
 
 		// Message is invalid.
@@ -96,28 +83,19 @@ func handleIncomingAdminConnection(conn net.Conn, p *provider.Provider) {
 	}
 }
 
-// // GetConnForRequestingAdminClient returns the connection for sending request to an admin client with given id.
-// // It will reuse any active connection.
-// func GetConnForRequestingAdminClient(gatewayID nodeid.NodeID, g *gateway.Gateway) (*gateway.CommunicationChannel, error) {
-// 	// Check if there is an active connection.
-// 	g.ActiveGatewaysLock.RLock() // TODO: Check this - Will need to add active admin connections to core structure
-// 	gComm := g.ActiveGateways[gatewayID.ToString()]
-// 	g.ActiveGatewaysLock.RUnlock()
-// 	if gComm == nil {
-// 		// No active connection, connect to peer.
-// 		g.GatewayAddressMapLock.RLock()
-// 		conn, err := net.Dial("tcp", g.GatewayAddressMap[gatewayID.ToString()])
-// 		g.GatewayAddressMapLock.RUnlock()
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		gComm = &gateway.CommunicationChannel{
-// 			CommsLock: sync.RWMutex{},
-// 			Conn:      conn}
-// 		if gateway.RegisterGatewayCommunication(&gatewayID, gComm) != nil {
-// 			conn.Close()
-// 			return nil, err
-// 		}
-// 	}
-// 	return gComm, nil
-// }
+func handleProviderPublishGroupCID(conn net.Conn, p *provider.Provider, message *fcrmessages.FCRMessage) error {
+	gateways, err := register.GetRegisteredGateways(p)
+	if err != nil {
+		logging.Error("Error with get registered gateways %v", err)
+		return err
+	}
+	for _, gw := range gateways {
+		gatewayID, err := nodeid.NewNodeIDFromString(gw.NodeID)
+		if err != nil {
+			logging.Error("Error with nodeID %v: %v", gw.NodeID, err)
+			continue
+		}
+		provider.SendMessageToGateway(message, gatewayID, p.GatewayCommPool)
+	}
+	return nil
+}
