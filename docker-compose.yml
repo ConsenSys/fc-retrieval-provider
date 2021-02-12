@@ -7,7 +7,7 @@ services:
     networks:
       - shared
     ports:
-      - "${SERVICE_PORT}:80"
+      - "${SERVICE_PORT}:${SERVICE_PORT}"
     env_file:
       - .env
      
