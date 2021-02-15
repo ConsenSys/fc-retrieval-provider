@@ -67,15 +67,7 @@ func handleIncomingAdminConnection(conn net.Conn, p *provider.Provider) {
 		// Respond to requests for a client's reputation.
 		if err == nil {
 			fmt.Printf("Message: %+v\n", message)
-			if message.MessageType == fcrmessages.ProviderAdminRegistrationRequestType {
-				err = handleProviderRegistration(conn, p, message)
-				if err != nil && !fcrtcpcomms.IsTimeoutError(err) {
-					// Error in tcp communication, drop the connection.
-					logging.Error1(err)
-					return
-				}
-				continue
-			} else if message.MessageType == fcrmessages.ProviderPublishGroupCIDRequestType {
+			if message.MessageType == fcrmessages.ProviderPublishGroupCIDRequestType {
 				err = handleProviderPublishGroupCID(conn, p, message)
 				if err != nil && !fcrtcpcomms.IsTimeoutError(err) {
 					// Error in tcp communication, drop the connection.
@@ -89,14 +81,6 @@ func handleIncomingAdminConnection(conn net.Conn, p *provider.Provider) {
 		// Message is invalid.
 		fcrtcpcomms.SendInvalidMessage(conn, tcpInactivityTimeout)
 	}
-}
-
-func handleProviderRegistration(conn net.Conn, p *provider.Provider, message *fcrmessages.FCRMessage) error {
-	err := register.RegisterProvider(p)
-	if err != nil {
-		logging.Error("Provider not registered: %v", err)
-	}
-	return nil
 }
 
 func handleProviderPublishGroupCID(conn net.Conn, p *provider.Provider, message *fcrmessages.FCRMessage) error {
