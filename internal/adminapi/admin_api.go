@@ -112,20 +112,22 @@ func handleProviderPublishGroupCID(conn net.Conn, p *provider.Provider, message 
 		_, offer, _ := fcrmessages.DecodeProviderPublishGroupCIDRequest(message)
 		p.AppendOffer(gatewayID, offer)
 	}
-	return nil
+	tcpInactivityTimeout := time.Duration(p.Conf.GetInt("TCP_INACTIVITY_TIMEOUT")) * time.Millisecond
+	return fcrtcpcomms.SendTCPMessage(conn, nil, tcpInactivityTimeout)
 }
 
-func handleProviderGetGroupCID(conn net.Conn, p *provider.Provider, message *fcrmessages.FCRMessage) error {
-	logging.Info("handleProviderGetGroupCID: %+v", message)
-	gatewayID, err1 := fcrmessages.DecodeProviderAdminGetGroupCIDRequest(message)
+func handleProviderGetGroupCID(conn net.Conn, p *provider.Provider, request *fcrmessages.FCRMessage) error {
+	logging.Info("handleProviderGetGroupCID: %+v", request)
+	gatewayID, err1 := fcrmessages.DecodeProviderAdminGetGroupCIDRequest(request)
 	if err1 != nil {
 		logging.Info("Provider get group cid request fail to decode request.")
 		return err1
 	}
 	offers := p.GetOffers(gatewayID)
-	message, err2 := fcrmessages.EncodeProviderAdminGetGroupCIDResponse(
+	// TODO: fix response
+	response, err2 := fcrmessages.EncodeProviderAdminGetGroupCIDResponse(
 		gatewayID,
-		(len(offers) > 0),
+		false,
 		offers,
 		nil,
 		nil,
@@ -136,5 +138,5 @@ func handleProviderGetGroupCID(conn net.Conn, p *provider.Provider, message *fcr
 		return err2
 	}
 	tcpInactivityTimeout := time.Duration(p.Conf.GetInt("TCP_INACTIVITY_TIMEOUT")) * time.Millisecond
-	return fcrtcpcomms.SendTCPMessage(conn, message, tcpInactivityTimeout)
+	return fcrtcpcomms.SendTCPMessage(conn, response, tcpInactivityTimeout)
 }

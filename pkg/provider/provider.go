@@ -64,7 +64,7 @@ func SendMessageToGateway(message *fcrmessages.FCRMessage, nodeID *nodeid.NodeID
 // AppendOffer to offers map
 func (p *Provider) AppendOffer(gatewayID *nodeid.NodeID, offer *cidoffer.CidGroupOffer) {
 	var offers = p.offers[strings.ToLower(gatewayID.ToString())]
-	_ = append(offers, offer)
+	p.offers[strings.ToLower(gatewayID.ToString())] = append(offers, offer)
 }
 
 // GetOffers from offers map
