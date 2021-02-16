@@ -1,7 +1,10 @@
 package provider
 
 import (
+	"strings"
+
 	"github.com/spf13/viper"
+	"github.com/ConsenSys/fc-retrieval-gateway/pkg/cidoffer"
 	"github.com/ConsenSys/fc-retrieval-gateway/pkg/fcrmessages"
 	"github.com/ConsenSys/fc-retrieval-gateway/pkg/fcrtcpcomms"
 	"github.com/ConsenSys/fc-retrieval-gateway/pkg/logging"
@@ -12,6 +15,7 @@ import (
 type Provider struct {
 	Conf            *viper.Viper
 	GatewayCommPool *fcrtcpcomms.CommunicationPool
+	offers     			map[string]([]*cidoffer.CidGroupOffer)
 }
 
 // NewProvider returns new provider
@@ -20,6 +24,7 @@ func NewProvider(conf *viper.Viper) *Provider {
 	return &Provider{
 		Conf:            conf,
 		GatewayCommPool: &gatewayCommPool,
+		offers:          make(map[string]([]*cidoffer.CidGroupOffer)),
 	}
 }
 
@@ -54,4 +59,15 @@ func SendMessageToGateway(message *fcrmessages.FCRMessage, nodeID *nodeid.NodeID
 		return err
 	}
 	return nil
+}
+
+// AppendOffer to offers map
+func (p *Provider) AppendOffer(gatewayID *nodeid.NodeID, offer *cidoffer.CidGroupOffer) {
+	var offers = p.offers[strings.ToLower(gatewayID.ToString())]
+	_ = append(offers, offer)
+}
+
+// GetOffers from offers map
+func (p *Provider) GetOffers(gatewayID *nodeid.NodeID) ([]*cidoffer.CidGroupOffer) {
+	return p.offers[strings.ToLower(gatewayID.ToString())]
 }

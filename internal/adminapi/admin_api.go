@@ -75,6 +75,14 @@ func handleIncomingAdminConnection(conn net.Conn, p *provider.Provider) {
 					return
 				}
 				continue
+			} else if message.MessageType == fcrmessages.ProviderAdminGetGroupCIDRequestType {
+				err = handleProviderGetGroupCID(conn, p, message)
+				if err != nil && !fcrtcpcomms.IsTimeoutError(err) {
+					// Error in tcp communication, drop the connection.
+					logging.Error1(err)
+					return
+				}
+				continue
 			}
 		}
 
@@ -84,6 +92,7 @@ func handleIncomingAdminConnection(conn net.Conn, p *provider.Provider) {
 }
 
 func handleProviderPublishGroupCID(conn net.Conn, p *provider.Provider, message *fcrmessages.FCRMessage) error {
+	logging.Info("handleProviderPublishGroupCID: %+v", message)
 	gateways, err := register.GetRegisteredGateways(p)
 	if err != nil {
 		logging.Error("Error with get registered gateways %v", err)
@@ -95,7 +104,37 @@ func handleProviderPublishGroupCID(conn net.Conn, p *provider.Provider, message 
 			logging.Error("Error with nodeID %v: %v", gw.NodeID, err)
 			continue
 		}
-		provider.SendMessageToGateway(message, gatewayID, p.GatewayCommPool)
+		err = provider.SendMessageToGateway(message, gatewayID, p.GatewayCommPool)
+		if err != nil {
+			logging.Error("Error with send message: %v", err)
+			continue
+		}
+		_, offer, _ := fcrmessages.DecodeProviderPublishGroupCIDRequest(message)
+		p.AppendOffer(gatewayID, offer)
 	}
 	return nil
+}
+
+func handleProviderGetGroupCID(conn net.Conn, p *provider.Provider, message *fcrmessages.FCRMessage) error {
+	logging.Info("handleProviderGetGroupCID: %+v", message)
+	gatewayID, err1 := fcrmessages.DecodeProviderAdminGetGroupCIDRequest(message)
+	if err1 != nil {
+		logging.Info("Provider get group cid request fail to decode request.")
+		return err1
+	}
+	offers := p.GetOffers(gatewayID)
+	message, err2 := fcrmessages.EncodeProviderAdminGetGroupCIDResponse(
+		gatewayID,
+		(len(offers) > 0),
+		offers,
+		nil,
+		nil,
+		nil,
+	)
+	if err2 != nil {
+		logging.Info("Provider get group cid request fail to encode response.")
+		return err2
+	}
+	tcpInactivityTimeout := time.Duration(p.Conf.GetInt("TCP_INACTIVITY_TIMEOUT")) * time.Millisecond
+	return fcrtcpcomms.SendTCPMessage(conn, message, tcpInactivityTimeout)
 }
