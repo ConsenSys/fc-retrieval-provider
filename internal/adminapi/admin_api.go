@@ -16,127 +16,125 @@ package adminapi
  */
 
 import (
-	"fmt"
-	"net"
-	"time"
+	"io/ioutil"
+	"net/http"
 
 	"github.com/ConsenSys/fc-retrieval-gateway/pkg/fcrmessages"
-	"github.com/ConsenSys/fc-retrieval-gateway/pkg/fcrtcpcomms"
 	"github.com/ConsenSys/fc-retrieval-gateway/pkg/logging"
-	"github.com/ConsenSys/fc-retrieval-gateway/pkg/nodeid"
 	"github.com/ConsenSys/fc-retrieval-provider/pkg/provider"
-	"github.com/ConsenSys/fc-retrieval-provider/internal/register"
+	"github.com/ant0ine/go-json-rest/rest"
 )
 
-// StartAdminAPI starts the TCP API as a separate go routine.
-func StartAdminAPI(p *provider.Provider) error {
-	// Start server
-	bindAdminApi := p.Conf.GetString("SERVICE_PORT")
-	ln, err := net.Listen("tcp", ":"+bindAdminApi)
-	if err != nil {
-		return err
-	}
-	go func(ln net.Listener) {
-		for {
-			conn, err := ln.Accept()
-			if err != nil {
-				logging.Error1(err)
-				continue
-			}
-			logging.Info("Incoming connection from admin client at :%s", conn.RemoteAddr())
-			go handleIncomingAdminConnection(conn, p)
-		}
-	}(ln)
-	logging.Info("Listening on %s for connections from admin clients", bindAdminApi)
-	return nil
+// StartAdminRestAPI starts the REST API as a separate go routine.
+// Any start-up errors are returned.
+func StartAdminRestAPI(p *provider.Provider) error {
+	// Start the REST API and block until the error code is set.
+	errChan := make(chan error, 1)
+	go startRestAPI(p, errChan)
+	return <-errChan
 }
 
-func handleIncomingAdminConnection(conn net.Conn, p *provider.Provider) {
-	// Close connection on exit.
-	defer conn.Close()
-
-	// Loop until error occurs and connection is dropped.
-	tcpInactivityTimeout := time.Duration(p.Conf.GetInt("TCP_INACTIVITY_TIMEOUT")) * time.Millisecond
-	for {
-		message, err := fcrtcpcomms.ReadTCPMessage(conn, tcpInactivityTimeout)
-		if err != nil && !fcrtcpcomms.IsTimeoutError(err) {
-			// Error in tcp communication, drop the connection.
-			logging.Error1(err)
-			return
-		}
-		// Respond to requests for a client's reputation.
-		if err == nil {
-			fmt.Printf("Message: %+v\n", message)
-			if message.MessageType == fcrmessages.ProviderPublishGroupCIDRequestType {
-				err = handleProviderPublishGroupCID(conn, p, message)
-				if err != nil && !fcrtcpcomms.IsTimeoutError(err) {
-					// Error in tcp communication, drop the connection.
-					logging.Error1(err)
-					return
-				}
-				continue
-			} else if message.MessageType == fcrmessages.ProviderAdminGetGroupCIDRequestType {
-				err = handleProviderGetGroupCID(conn, p, message)
-				if err != nil && !fcrtcpcomms.IsTimeoutError(err) {
-					// Error in tcp communication, drop the connection.
-					logging.Error1(err)
-					return
-				}
-				continue
-			}
-		}
-
-		// Message is invalid.
-		fcrtcpcomms.SendInvalidMessage(conn, tcpInactivityTimeout)
-	}
-}
-
-func handleProviderPublishGroupCID(conn net.Conn, p *provider.Provider, message *fcrmessages.FCRMessage) error {
-	logging.Info("handleProviderPublishGroupCID: %+v", message)
-	gateways, err := register.GetRegisteredGateways(p)
-	if err != nil {
-		logging.Error("Error with get registered gateways %v", err)
-		return err
-	}
-	for _, gw := range gateways {
-		gatewayID, err := nodeid.NewNodeIDFromString(gw.NodeID)
-		if err != nil {
-			logging.Error("Error with nodeID %v: %v", gw.NodeID, err)
-			continue
-		}
-		err = provider.SendMessageToGateway(message, gatewayID, p.GatewayCommPool)
-		if err != nil {
-			logging.Error("Error with send message: %v", err)
-			continue
-		}
-		_, offer, _ := fcrmessages.DecodeProviderPublishGroupCIDRequest(message)
-		p.AppendOffer(gatewayID, offer)
-	}
-	tcpInactivityTimeout := time.Duration(p.Conf.GetInt("TCP_INACTIVITY_TIMEOUT")) * time.Millisecond
-	return fcrtcpcomms.SendTCPMessage(conn, nil, tcpInactivityTimeout)
-}
-
-func handleProviderGetGroupCID(conn net.Conn, p *provider.Provider, request *fcrmessages.FCRMessage) error {
-	logging.Info("handleProviderGetGroupCID: %+v", request)
-	gatewayID, err1 := fcrmessages.DecodeProviderAdminGetGroupCIDRequest(request)
-	if err1 != nil {
-		logging.Info("Provider get group cid request fail to decode request.")
-		return err1
-	}
-	offers := p.GetOffers(gatewayID)
-	// TODO: fix response
-	response, err2 := fcrmessages.EncodeProviderAdminGetGroupCIDResponse(
-		gatewayID,
-		false,
-		offers,
-		nil,
-		nil,
-		nil,
+func startRestAPI(p *provider.Provider, errChannel chan<- error) {
+	api := rest.NewApi()
+	api.Use(rest.DefaultDevStack...)
+	router, err := rest.MakeRouter(
+		// TODO: Remove these debug APIs prior to production release.
+		// rest.Get("/time", getTime),     // Get system time.
+		// rest.Get("/ip", getIP),         // Get IP address.
+		// rest.Get("/host", getHostname), // Get host name.
+		rest.Post("/v1", msgRouter),
 	)
-	if err2 != nil {
-		logging.Info("Provider get group cid request fail to encode response.")
-		return err2
+	if err != nil {
+		logging.Error1(err)
+		errChannel <- err
+		return
 	}
-	tcpInactivityTimeout := time.Duration(p.Conf.GetInt("TCP_INACTIVITY_TIMEOUT")) * time.Millisecond
-	return fcrtcpcomms.SendTCPMessage(conn, response, tcpInactivityTimeout)
+	bindAdminApi := p.Conf.GetString("SERVICE_PORT")
+	logging.Info("Running REST API on: %s", bindAdminApi)
+	api.SetApp(router)
+	errChannel <- nil
+	logging.Error(http.ListenAndServe(":"+bindAdminApi, api.MakeHandler()).Error())
+	panic("Error binding")
+}
+
+func msgRouter(w rest.ResponseWriter, r *rest.Request) {
+	// Get core structure
+	p := provider.GetSingleInstance()
+
+	logging.Trace("Received request via /v1 API")
+	content, err := ioutil.ReadAll(r.Body)
+	r.Body.Close()
+	if err != nil {
+		logging.Error("Error reading request: %s.", err.Error())
+		rest.Error(w, "Error reading request", http.StatusBadRequest)
+		return
+	}
+	if len(content) == 0 {
+		logging.Error("Error empty request")
+		rest.Error(w, "Error empty request", http.StatusBadRequest)
+		return
+	}
+	
+	request, err := fcrmessages.FCRMsgFromBytes(content)
+	if err != nil {
+		logging.Error("Failed to decode payload: %s.", err.Error())
+		rest.Error(w, "Failed to decode payload: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	checked := checkProtocol(w, request, p)
+	if checked == false {
+		return
+	}
+
+	switch request.GetMessageType() {
+		case fcrmessages.ProviderPublishGroupCIDRequestType:
+			handleProviderPublishGroupCID(w, request, p)
+		case fcrmessages.ProviderAdminGetGroupCIDRequestType:
+			handleProviderGetGroupCID(w, request, p)
+		default:
+			logging.Warn("Client Request: Unknown message type: %d", request.GetMessageType())
+			rest.Error(w, "Unknown message type", http.StatusBadRequest)
+	}
+}
+
+
+func checkProtocol(w rest.ResponseWriter, request *fcrmessages.FCRMessage, p *provider.Provider) bool {
+	protocolVersion := p.ProtocolVersion
+	protocolSupported := p.ProtocolSupported
+	// Only process the rest of the message if the protocol version is understood.
+	if request.ProtocolVersion != protocolVersion {
+		// Check to see if the client supports the gateway's preferred version
+		for _, clientProvVer := range request.ProtocolSupported {
+			if clientProvVer == protocolVersion {
+				// Request the client switch to this protocol version
+				// TODO what can we get from request object?
+				logging.Info("Requesting client (TODO) switch protocol versions from %d to %d", request.ProtocolVersion, protocolVersion)
+				response, _ := fcrmessages.EncodeProtocolChangeResponse(protocolVersion)
+				w.WriteJson(response)
+				return false
+			}
+		}
+
+		// Go through the protocol versions supported by the client and the
+		// gateway to search for any common version, prioritising
+		// the gateway preference over the client preference.
+		for _, clientProvVer := range request.ProtocolSupported {
+			for _, gatewayProtVer := range protocolSupported {
+				if clientProvVer == gatewayProtVer {
+					// When we support more than one version of the protocol, this code will change the gateway
+					// to using the other (common version)
+					logging.Error("Not implemented yet")
+					panic("Multiple protocol versions not implemented yet")
+				}
+			}
+		}
+		// No common protocol versions supported.
+		// TODO what can we get from request object?
+		logging.Warn("Client Request: Unsupported protocol version(s): %d", request.ProtocolVersion)
+		response, _ := fcrmessages.EncodeProtocolMismatchResponse()
+		w.WriteJson(response)
+		return false
+	}
+	return true
 }

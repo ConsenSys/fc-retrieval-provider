@@ -2,6 +2,8 @@ package provider
 
 import (
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/spf13/viper"
 	"github.com/ConsenSys/fc-retrieval-gateway/pkg/cidoffer"
@@ -13,23 +15,49 @@ import (
 
 // Provider configuration
 type Provider struct {
-	Conf            *viper.Viper
-	GatewayCommPool *fcrtcpcomms.CommunicationPool
-	offers     			map[string]([]*cidoffer.CidGroupOffer)
+	Conf            		*viper.Viper
+	ProtocolVersion			int32
+	ProtocolSupported		[]int32
+	GatewayCommPool 		*fcrtcpcomms.CommunicationPool
+	Offers     					map[string]([]*cidoffer.CidGroupOffer)
 }
 
-// NewProvider returns new provider
-func NewProvider(conf *viper.Viper) *Provider {
-	gatewayCommPool := fcrtcpcomms.NewCommunicationPool()
-	return &Provider{
-		Conf:            conf,
-		GatewayCommPool: &gatewayCommPool,
-		offers:          make(map[string]([]*cidoffer.CidGroupOffer)),
+// Single instance of the gateway
+var instance *Provider
+var doOnce sync.Once
+
+// GetSingleInstance returns the single instance of the provider
+func GetSingleInstance(confs ...*viper.Viper) *Provider {
+	doOnce.Do(func() {
+		conf := getConf(confs)
+		protocolVersion := conf.GetInt32("PROTOCOL_VERSION")
+		protocolSupported := conf.GetInt32("PROTOCOL_SUPPORTED")
+		gatewayCommPool := fcrtcpcomms.NewCommunicationPool()
+		instance = &Provider{
+			Conf:            		conf,
+			ProtocolVersion:		protocolVersion,
+			ProtocolSupported:	[]int32{protocolVersion, protocolSupported},
+			GatewayCommPool: 		&gatewayCommPool,
+			Offers:          		make(map[string]([]*cidoffer.CidGroupOffer)),
+		}
+	})
+	return instance
+}
+
+func getConf(confs []*viper.Viper) (*viper.Viper) {
+	if len(confs) == 0 {
+		logging.ErrorAndPanic("No settings supplied to Gateway start-up")
 	}
+	if len(confs) != 1 {
+		logging.ErrorAndPanic("More than one sets of settings supplied to Gateway start-up")
+	}
+	return confs[0]
 }
 
 // SendMessageToGateway to gateway
-func SendMessageToGateway(message *fcrmessages.FCRMessage, nodeID *nodeid.NodeID, gCommPool *fcrtcpcomms.CommunicationPool) error {
+func (p *Provider) SendMessageToGateway(message *fcrmessages.FCRMessage, nodeID *nodeid.NodeID) error {
+	tcpInactivityTimeout := time.Duration(p.Conf.GetInt("TCP_INACTIVITY_TIMEOUT")) * time.Millisecond
+	gCommPool := p.GatewayCommPool
 	gComm, err := gCommPool.GetConnForRequestingNode(nodeID)
 	if err != nil {
 		logging.Error("Connection issue: %v", err)
@@ -47,7 +75,7 @@ func SendMessageToGateway(message *fcrmessages.FCRMessage, nodeID *nodeid.NodeID
 	err = fcrtcpcomms.SendTCPMessage(
 		gComm.Conn,
 		message,
-		30000)
+		tcpInactivityTimeout)
 	if err != nil {
 		logging.Error("Message not sent: %v", err)
 		if gComm != nil {
@@ -63,11 +91,11 @@ func SendMessageToGateway(message *fcrmessages.FCRMessage, nodeID *nodeid.NodeID
 
 // AppendOffer to offers map
 func (p *Provider) AppendOffer(gatewayID *nodeid.NodeID, offer *cidoffer.CidGroupOffer) {
-	var offers = p.offers[strings.ToLower(gatewayID.ToString())]
-	p.offers[strings.ToLower(gatewayID.ToString())] = append(offers, offer)
+	var offers = p.Offers[strings.ToLower(gatewayID.ToString())]
+	p.Offers[strings.ToLower(gatewayID.ToString())] = append(offers, offer)
 }
 
 // GetOffers from offers map
 func (p *Provider) GetOffers(gatewayID *nodeid.NodeID) ([]*cidoffer.CidGroupOffer) {
-	return p.offers[strings.ToLower(gatewayID.ToString())]
+	return p.Offers[strings.ToLower(gatewayID.ToString())]
 }
