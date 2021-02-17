@@ -7,7 +7,9 @@ services:
     networks:
       - shared
     ports:
-      - "${SERVICE_PORT}:80"
+      - "${BIND_REST_API}:${BIND_REST_API}"
+      - "${BIND_GATEWAY_API}:${BIND_GATEWAY_API}"
+      - "${BIND_ADMIN_API}:${BIND_ADMIN_API}"
     env_file:
       - .env
      
