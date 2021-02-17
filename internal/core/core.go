@@ -9,6 +9,7 @@ import (
 	"github.com/ConsenSys/fc-retrieval-gateway/pkg/logging"
 	log "github.com/ConsenSys/fc-retrieval-gateway/pkg/logging"
 	"github.com/ConsenSys/fc-retrieval-gateway/pkg/nodeid"
+	"github.com/ConsenSys/fc-retrieval-gateway/pkg/register"
 	"github.com/ConsenSys/fc-retrieval-provider/internal/offers"
 	"github.com/ConsenSys/fc-retrieval-provider/internal/util/settings"
 )
@@ -20,8 +21,8 @@ const (
 
 // DHTAcknowledgement stores the acknowledgement of a single cid offer
 type DHTAcknowledgement struct {
-	Msg    fcrmessages.ProviderDHTPublishGroupCIDRequest
-	MsgAck fcrmessages.ProviderDHTPublishGroupCIDAck
+	Msg    fcrmessages.FCRMessage // Original message
+	MsgAck fcrmessages.FCRMessage // Original message ACK
 }
 
 // Core holds the main data structure for the whole provider
@@ -39,7 +40,7 @@ type Core struct {
 	ProviderPrivateKeyVersion *fcrcrypto.KeyVersion
 
 	// RegisteredGatewaysMap stores mapping from gateway id (big int in string repr) to its registration info
-	RegisteredGatewaysMap     map[string]string //TODO: Need to wait for an PR to introduce rego info
+	RegisteredGatewaysMap     map[string]register.RegisteredNode
 	RegisteredGatewaysMapLock sync.RWMutex
 
 	GatewayCommPool *fcrtcpcomms.CommunicationPool
@@ -47,7 +48,7 @@ type Core struct {
 	// Offers offered by this provider, it is threadsafe.
 	Offers *offers.Offers
 
-	// Acknowledgement for every single cid offer sent
+	// Acknowledgement for every single cid offer sent (map from gateway id -> map of cid -> ack)
 	AcknowledgementMap     map[string](map[string]DHTAcknowledgement)
 	AcknowledgementMapLock sync.RWMutex
 }
@@ -86,7 +87,7 @@ func GetSingleInstance(confs ...*settings.AppSettings) *Core {
 			ProviderPrivateKey:        providerPrivateKey,
 			ProviderPrivateKeyVersion: providerPrivateKeyVersion,
 
-			RegisteredGatewaysMap:     make(map[string]string), //TODO, wait for PR
+			RegisteredGatewaysMap:     make(map[string]register.RegisteredNode),
 			RegisteredGatewaysMapLock: sync.RWMutex{},
 
 			Offers: offers.GetSingleInstance(),
@@ -94,8 +95,7 @@ func GetSingleInstance(confs ...*settings.AppSettings) *Core {
 			AcknowledgementMap:     make(map[string](map[string]DHTAcknowledgement)),
 			AcknowledgementMapLock: sync.RWMutex{},
 		}
-		// TODO, wait for PR
-		// instance.GatewayCommPool = fcrtcpcomms.NewCommunicationPool(instance.RegisteredGatewaysMap, &instance.RegisteredGatewaysMapLock)
+		instance.GatewayCommPool = fcrtcpcomms.NewCommunicationPool(instance.RegisteredGatewaysMap, &instance.RegisteredGatewaysMapLock)
 	})
 	return instance
 }
