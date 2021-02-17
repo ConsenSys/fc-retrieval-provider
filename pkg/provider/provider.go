@@ -89,13 +89,19 @@ func (p *Provider) SendMessageToGateway(message *fcrmessages.FCRMessage, nodeID 
 	return nil
 }
 
+// GetAllOffers from offers map
+func (p *Provider) GetAllOffers() ([]*cidoffer.CidGroupOffer) {
+	// TODO: get all offers
+	return make([]*cidoffer.CidGroupOffer, 0)
+}
+
+// GetOffersByGatewayID from offers map
+func (p *Provider) GetOffersByGatewayID(gatewayID *nodeid.NodeID) ([]*cidoffer.CidGroupOffer) {
+	return p.Offers[strings.ToLower(gatewayID.ToString())]
+}
+
 // AppendOffer to offers map
 func (p *Provider) AppendOffer(gatewayID *nodeid.NodeID, offer *cidoffer.CidGroupOffer) {
 	var offers = p.Offers[strings.ToLower(gatewayID.ToString())]
 	p.Offers[strings.ToLower(gatewayID.ToString())] = append(offers, offer)
-}
-
-// GetOffers from offers map
-func (p *Provider) GetOffers(gatewayID *nodeid.NodeID) ([]*cidoffer.CidGroupOffer) {
-	return p.Offers[strings.ToLower(gatewayID.ToString())]
 }

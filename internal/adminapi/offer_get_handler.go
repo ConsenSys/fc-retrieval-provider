@@ -1,36 +1,49 @@
 package adminapi
 
 import (
-	"net/http"
-
 	"github.com/ant0ine/go-json-rest/rest"
+	"github.com/ConsenSys/fc-retrieval-gateway/pkg/cidoffer"
+	"github.com/ConsenSys/fc-retrieval-gateway/pkg/fcrmerkletree"
 	"github.com/ConsenSys/fc-retrieval-gateway/pkg/fcrmessages"
 	"github.com/ConsenSys/fc-retrieval-gateway/pkg/logging"
-	"github.com/ConsenSys/fc-retrieval-gateway/pkg/nodeid"
 	"github.com/ConsenSys/fc-retrieval-provider/pkg/provider"
-	"github.com/ConsenSys/fc-retrieval-provider/internal/register"
 )
 
-func handleProviderPublishGroupCID(w rest.ResponseWriter, request *fcrmessages.FCRMessage, p *provider.Provider) {
-	logging.Info("handleProviderPublishGroupCID: %+v", request)
-	gateways, err := register.GetRegisteredGateways(p)
-	if err != nil {
-		logging.Error("Error with get registered gateways %v", err)
-		panic(err)
+func handleProviderGetGroupCID(w rest.ResponseWriter, request *fcrmessages.FCRMessage, p *provider.Provider) {
+	logging.Info("handleProviderGetGroupCID: %+v", request)
+	gatewayID, err1 := fcrmessages.DecodeProviderAdminGetGroupCIDRequest(request)
+	if err1 != nil {
+		logging.Info("Provider get group cid request fail to decode request.")
+		panic(err1)
 	}
-	for _, gw := range gateways {
-		gatewayID, err := nodeid.NewNodeIDFromString(gw.NodeID)
-		if err != nil {
-			logging.Error("Error with nodeID %v: %v", gw.NodeID, err)
-			continue
-		}
-		err = p.SendMessageToGateway(request, gatewayID)
-		if err != nil {
-			logging.Error("Error with send message: %v", err)
-			continue
-		}
-		_, offer, _ := fcrmessages.DecodeProviderPublishGroupCIDRequest(request)
-		p.AppendOffer(gatewayID, offer)
+	offers := make([]*cidoffer.CidGroupOffer, 0)
+	if gatewayID != nil {
+		offers = p.GetOffersByGatewayID(gatewayID)
+	} else {
+		offers = p.GetAllOffers()
 	}
-	w.WriteHeader(http.StatusOK)
+
+	// TODO: fix roots, proofs and payments
+	roots := make([]string, len(offers))
+	proofs := make([]fcrmerkletree.FCRMerkleProof, len(offers))
+	fundedPaymentChannel := make([]bool, len(offers))
+	for i := 0; i < len(offers); i++ {
+		roots[i] = ""
+		proofs[i] = fcrmerkletree.FCRMerkleProof{}
+		fundedPaymentChannel[i] = false
+	}
+
+	response, err2 := fcrmessages.EncodeProviderAdminGetGroupCIDResponse(
+		gatewayID,
+		len(offers) > 0,
+		offers,
+		roots,
+		proofs,
+		fundedPaymentChannel,
+	)
+	if err2 != nil {
+		logging.Info("Provider get group cid request fail to encode response.")
+		panic(err2)
+	}
+	w.WriteJson(response)
 }
