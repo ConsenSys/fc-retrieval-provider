@@ -1,6 +1,7 @@
 package provider
 
 import (
+	"sync"
 	"time"
 
 	"github.com/spf13/viper"
@@ -9,7 +10,7 @@ import (
 	"github.com/ConsenSys/fc-retrieval-gateway/pkg/fcrtcpcomms"
 	log "github.com/ConsenSys/fc-retrieval-gateway/pkg/logging"
 	"github.com/ConsenSys/fc-retrieval-gateway/pkg/nodeid"
-	"github.com/ConsenSys/fc-retrieval-register/pkg/register"
+	"github.com/ConsenSys/fc-retrieval-gateway/pkg/register"
 
 	"github.com/ConsenSys/fc-retrieval-provider/internal/dummy"
 )
@@ -22,10 +23,10 @@ type Provider struct {
 
 // NewProvider returns new provider
 func NewProvider(conf *viper.Viper) *Provider {
-	gatewayCommPool := fcrtcpcomms.NewCommunicationPool()
+	gatewayCommPool := fcrtcpcomms.NewCommunicationPool(make(map[string]register.RegisteredNode), &sync.RWMutex{})
 	return &Provider{
 		Conf:            conf,
-		GatewayCommPool: &gatewayCommPool,
+		GatewayCommPool: gatewayCommPool,
 	}
 }
 
@@ -47,14 +48,14 @@ func (provider *Provider) greet() {
 // Register the provider
 func (provider *Provider) registration() {
 	reg := register.ProviderRegister{
-		Address:        provider.Conf.GetString("PROVIDER_ADDRESS"),
-		NetworkInfo:    provider.Conf.GetString("PROVIDER_NETWORK_INFO"),
-		RegionCode:     provider.Conf.GetString("PROVIDER_REGION_CODE"),
-		RootSigningKey: provider.Conf.GetString("PROVIDER_ROOT_SIGNING_KEY"),
-		SigingKey:      provider.Conf.GetString("PROVIDER_SIGNING_KEY"),
+		Address:            provider.Conf.GetString("PROVIDER_ADDRESS"),
+		NetworkGatewayInfo: provider.Conf.GetString("PROVIDER_NETWORK_INFO"),
+		RegionCode:         provider.Conf.GetString("PROVIDER_REGION_CODE"),
+		RootSigningKey:     provider.Conf.GetString("PROVIDER_ROOT_SIGNING_KEY"),
+		SigningKey:         provider.Conf.GetString("PROVIDER_SIGNING_KEY"),
 	}
 
-	err := register.RegisterProvider(provider.Conf.GetString("REGISTER_API_URL"), reg)
+	err := reg.RegisterProvider(provider.Conf.GetString("REGISTER_API_URL"))
 	if err != nil {
 		log.Error("Provider not registered: %v", err)
 	}
@@ -62,7 +63,7 @@ func (provider *Provider) registration() {
 
 // SendMessageToGateway to gateway
 func SendMessageToGateway(message *fcrmessages.FCRMessage, nodeID *nodeid.NodeID, gCommPool *fcrtcpcomms.CommunicationPool) error {
-	gComm, err := gCommPool.GetConnForRequestingNode(nodeID)
+	gComm, err := gCommPool.GetConnForRequestingNode(nodeID, fcrtcpcomms.AccessFromProvider)
 	if err != nil {
 		log.Error("Connection issue: %v", err)
 		if gComm != nil {
@@ -108,7 +109,7 @@ func (provider *Provider) loop() {
 				log.Error("Error with nodeID %v: %v", gw.NodeID, err)
 				continue
 			}
-			provider.GatewayCommPool.RegisterNodeAddress(gatewayID, gw.NetworkProviderInfo)
+			provider.GatewayCommPool.RegisteredNodeMap[gw.NodeID] = &gw
 			SendMessageToGateway(message, gatewayID, provider.GatewayCommPool)
 		}
 		time.Sleep(25 * time.Second)
