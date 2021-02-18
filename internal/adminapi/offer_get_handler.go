@@ -23,12 +23,13 @@ func handleProviderGetGroupCID(w rest.ResponseWriter, request *fcrmessages.FCRMe
 		offers = p.GetAllOffers()
 	}
 
-	// TODO: fix roots, proofs and payments
+	// TODO: fix proofs and payments
 	roots := make([]string, len(offers))
 	proofs := make([]fcrmerkletree.FCRMerkleProof, len(offers))
 	fundedPaymentChannel := make([]bool, len(offers))
 	for i := 0; i < len(offers); i++ {
-		roots[i] = ""
+		offer := offers[i]
+		roots[i] = offer.GetMerkleRoot()
 		proofs[i] = fcrmerkletree.FCRMerkleProof{}
 		fundedPaymentChannel[i] = false
 	}
