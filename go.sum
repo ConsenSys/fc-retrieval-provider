@@ -29,6 +29,16 @@ github.com/ConsenSys/fc-retrieval-gateway v0.0.0-20210216094456-fd207361e8c0 h1:
 github.com/ConsenSys/fc-retrieval-gateway v0.0.0-20210216094456-fd207361e8c0/go.mod h1:Rr/VSrMXCZDiR4OzKokE1q57Q79fEng37ZguEuFWLRU=
 github.com/ConsenSys/fc-retrieval-gateway v0.0.0-20210216110558-b6d1ad910f3d h1:hS6TjS04wDXMSgjICc1rWSJzKcDNpleoqccI+vMZwLA=
 github.com/ConsenSys/fc-retrieval-gateway v0.0.0-20210216110558-b6d1ad910f3d/go.mod h1:Rr/VSrMXCZDiR4OzKokE1q57Q79fEng37ZguEuFWLRU=
+github.com/ConsenSys/fc-retrieval-gateway v0.0.0-20210218143623-94c5edde597e h1:BKXzHIknjq2g1WxsW8mP3uxI2lKUTO7CmZiWHXZqXAg=
+github.com/ConsenSys/fc-retrieval-gateway v0.0.0-20210218143623-94c5edde597e/go.mod h1:Rr/VSrMXCZDiR4OzKokE1q57Q79fEng37ZguEuFWLRU=
+github.com/ConsenSys/fc-retrieval-gateway v0.0.0-20210218144402-9260cf99ce74 h1:MurHVLK5MDSezT2xHFO4ido4r4UdbvftMuXItbPcyQI=
+github.com/ConsenSys/fc-retrieval-gateway v0.0.0-20210218144402-9260cf99ce74/go.mod h1:Rr/VSrMXCZDiR4OzKokE1q57Q79fEng37ZguEuFWLRU=
+github.com/ConsenSys/fc-retrieval-gateway v0.0.0-20210218151818-3b7fa75e5e5e h1:+4g4WqS8Q60PIetLl10jQz0MICv8rBS7ZwR0Y6GGjNc=
+github.com/ConsenSys/fc-retrieval-gateway v0.0.0-20210218151818-3b7fa75e5e5e/go.mod h1:Rr/VSrMXCZDiR4OzKokE1q57Q79fEng37ZguEuFWLRU=
+github.com/ConsenSys/fc-retrieval-gateway v0.0.0-20210218153138-b81bdf2ec711 h1:JJj9sNIpSarblKWyWEWTVXszB8cdRTaw+FRCNC4c220=
+github.com/ConsenSys/fc-retrieval-gateway v0.0.0-20210218153138-b81bdf2ec711/go.mod h1:Rr/VSrMXCZDiR4OzKokE1q57Q79fEng37ZguEuFWLRU=
+github.com/ConsenSys/fc-retrieval-gateway v0.0.0-20210218154321-7710d81bd3e2 h1:cMYUua423oZn4b0OTmmyK82PUH9FijvHVnl1kmy8l8w=
+github.com/ConsenSys/fc-retrieval-gateway v0.0.0-20210218154321-7710d81bd3e2/go.mod h1:Rr/VSrMXCZDiR4OzKokE1q57Q79fEng37ZguEuFWLRU=
 github.com/ConsenSys/fc-retrieval-gateway-admin v0.0.0-20210211040148-f5fc7cc0c831/go.mod h1:x8vHv0nzGW2GMka+NqFLSZfOMIXtwxthmKkLwGLn72Q=
 github.com/ConsenSys/fc-retrieval-itest v0.0.0-20210212014656-b02280015a81 h1:1ZE0JHlXeV7oS0GMTOv7U1nsZdjiiJGTwhy6/WFzwBY=
 github.com/ConsenSys/fc-retrieval-itest v0.0.0-20210212014656-b02280015a81/go.mod h1:I5PQKvcyCbIHkUWbI/ot5SiedI777v9/GozZsbuJfwg=

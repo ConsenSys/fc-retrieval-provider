@@ -24,11 +24,18 @@ func handleProviderPublishGroupCID(w rest.ResponseWriter, request *fcrmessages.F
 			logging.Error("Error with nodeID %v: %v", gw.NodeID, err)
 			continue
 		}
-		err = p.SendMessageToGateway(request, gatewayID)
+		response, err := p.SendMessageToGateway(request, gatewayID)
 		if err != nil {
 			logging.Error("Error with send message: %v", err)
 			continue
 		}
+		logging.Info("Got reponse from gateway=%v: %+v", gatewayID.ToString(), response)
+		_, digest, err := fcrmessages.DecodeProviderPublishGroupCIDResponse(response)
+		if err != nil {
+			logging.Error("Error with decode response: %v", err)
+			continue
+		}
+		logging.Info("Offer digest: %v", digest)
 		_, offer, _ := fcrmessages.DecodeProviderPublishGroupCIDRequest(request)
 		p.AppendOffer(gatewayID, offer)
 	}

@@ -11,17 +11,24 @@ import (
 
 func handleProviderGetGroupCID(w rest.ResponseWriter, request *fcrmessages.FCRMessage, p *provider.Provider) {
 	logging.Info("handleProviderGetGroupCID: %+v", request)
-	gatewayID, err1 := fcrmessages.DecodeProviderAdminGetGroupCIDRequest(request)
+	gatewayIDs, err1 := fcrmessages.DecodeProviderAdminGetGroupCIDRequest(request)
 	if err1 != nil {
 		logging.Info("Provider get group cid request fail to decode request.")
 		panic(err1)
 	}
-	offers := make([]*cidoffer.CidGroupOffer, 0)
-	if gatewayID != nil {
-		offers = p.GetOffersByGatewayID(gatewayID)
+	logging.Info("Find offers: gatewayIDs=%+v", gatewayIDs)
+	var offers []*cidoffer.CidGroupOffer
+	if len(gatewayIDs) > 0 {
+		for _, gatewayID := range gatewayIDs {
+			offs := p.GetOffersByGatewayID(&gatewayID)
+			for _, off := range offs {
+				offers = append(offers, off)
+			}
+		}
 	} else {
 		offers = p.GetAllOffers()
 	}
+	logging.Info("Found offers: %+v", len(offers))
 
 	// TODO: fix proofs and payments
 	roots := make([]string, len(offers))
@@ -35,7 +42,6 @@ func handleProviderGetGroupCID(w rest.ResponseWriter, request *fcrmessages.FCRMe
 	}
 
 	response, err2 := fcrmessages.EncodeProviderAdminGetGroupCIDResponse(
-		gatewayID,
 		len(offers) > 0,
 		offers,
 		roots,

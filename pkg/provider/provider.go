@@ -55,7 +55,10 @@ func getConf(confs []*viper.Viper) (*viper.Viper) {
 }
 
 // SendMessageToGateway to gateway
-func (p *Provider) SendMessageToGateway(message *fcrmessages.FCRMessage, nodeID *nodeid.NodeID) error {
+func (p *Provider) SendMessageToGateway(message *fcrmessages.FCRMessage, nodeID *nodeid.NodeID) (
+	*fcrmessages.FCRMessage,
+	error,
+) {
 	tcpInactivityTimeout := time.Duration(p.Conf.GetInt("TCP_INACTIVITY_TIMEOUT")) * time.Millisecond
 	gCommPool := p.GatewayCommPool
 	gComm, err := gCommPool.GetConnForRequestingNode(nodeID)
@@ -67,7 +70,7 @@ func (p *Provider) SendMessageToGateway(message *fcrmessages.FCRMessage, nodeID 
 		}
 		logging.Debug("Removing connection from pool ...")
 		gCommPool.DeregisterNodeCommunication(nodeID)
-		return err
+		return nil, err
 	}
 	gComm.CommsLock.Lock()
 	defer gComm.CommsLock.Unlock()
@@ -84,15 +87,34 @@ func (p *Provider) SendMessageToGateway(message *fcrmessages.FCRMessage, nodeID 
 		}
 		logging.Debug("Removing connection from pool ...")
 		gCommPool.DeregisterNodeCommunication(nodeID)
-		return err
+		return nil, err
 	}
-	return nil
+	response, err := fcrtcpcomms.ReadTCPMessage(gComm.Conn, tcpInactivityTimeout)
+	if err != nil && fcrtcpcomms.IsTimeoutError(err) {
+		// Timeout can be ignored. Since this message can expire.
+		return nil, nil
+	} else if err != nil {
+		logging.Error("Message not sent: %v", err)
+		if gComm != nil {
+			logging.Debug("Closing connection ...")
+			gComm.Conn.Close()
+		}
+		logging.Debug("Removing connection from pool ...")
+		gCommPool.DeregisterNodeCommunication(nodeID)
+		return nil, err
+	}
+	return response, nil
 }
 
 // GetAllOffers from offers map
 func (p *Provider) GetAllOffers() ([]*cidoffer.CidGroupOffer) {
-	// TODO: get all offers
-	return make([]*cidoffer.CidGroupOffer, 0)
+	var offers []*cidoffer.CidGroupOffer
+	for _, values := range p.Offers {
+		for _, value := range values {
+			offers = append(offers, value)
+		}
+	}
+	return offers
 }
 
 // GetOffersByGatewayID from offers map
