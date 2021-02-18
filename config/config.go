@@ -28,7 +28,7 @@ func parseUint8(value string) uint8 {
 	return uint8(result)
 }
 
-// Map sets the config for the Gateway. NB: Gateways start without a private key. Private keys are provided by a gateway admin client.
+// Map sets the config for the Provider. NB: Providers start without a private key. Private keys are provided by a provider admin client.
 func Map(conf *viper.Viper) settings.AppSettings {
 	return settings.AppSettings{
 		BindRestAPI:    conf.GetString("BIND_REST_API"),
