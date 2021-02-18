@@ -3,6 +3,7 @@ package main
 import (
 	log "github.com/ConsenSys/fc-retrieval-gateway/pkg/logging"
 	"github.com/ConsenSys/fc-retrieval-gateway/pkg/register"
+	_ "github.com/joho/godotenv/autoload"
 
 	"github.com/ConsenSys/fc-retrieval-provider/config"
 	"github.com/ConsenSys/fc-retrieval-provider/internal/api/adminapi"
@@ -72,7 +73,7 @@ func main() {
 	// Configure what should be called if Control-C is hit.
 	util.SetUpCtrlCExit(gracefulExit)
 
-	log.Info("Filecoin Gateway Start-up Complete")
+	log.Info("Filecoin Provider Start-up Complete")
 
 	// Wait forever.
 	select {}
