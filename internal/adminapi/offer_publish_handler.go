@@ -1,6 +1,7 @@
 package adminapi
 
 import (
+	"bytes"
 	"net/http"
 
 	"github.com/ant0ine/go-json-rest/rest"
@@ -30,14 +31,20 @@ func handleProviderPublishGroupCID(w rest.ResponseWriter, request *fcrmessages.F
 			continue
 		}
 		logging.Info("Got reponse from gateway=%v: %+v", gatewayID.ToString(), response)
-		_, digest, err := fcrmessages.DecodeProviderPublishGroupCIDResponse(response)
+		_, candidate, err := fcrmessages.DecodeProviderPublishGroupCIDResponse(response)
 		if err != nil {
 			logging.Error("Error with decode response: %v", err)
 			continue
 		}
-		logging.Info("Offer digest: %v", digest)
+		logging.Info("Received digest: %v", candidate)
 		_, offer, _ := fcrmessages.DecodeProviderPublishGroupCIDRequest(request)
-		p.AppendOffer(gatewayID, offer)
+		digest := offer.GetMessageDigest()
+		if bytes.Equal(candidate[:], digest[:]) {
+			logging.Info("Digest is OK! Add offer to storage")
+			p.AppendOffer(gatewayID, offer)
+		} else {
+			logging.Info("Digest is not OK")
+		}
 	}
 	w.WriteHeader(http.StatusOK)
 }

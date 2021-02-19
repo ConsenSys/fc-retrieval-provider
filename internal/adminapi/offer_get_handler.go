@@ -3,7 +3,6 @@ package adminapi
 import (
 	"github.com/ant0ine/go-json-rest/rest"
 	"github.com/ConsenSys/fc-retrieval-gateway/pkg/cidoffer"
-	"github.com/ConsenSys/fc-retrieval-gateway/pkg/fcrmerkletree"
 	"github.com/ConsenSys/fc-retrieval-gateway/pkg/fcrmessages"
 	"github.com/ConsenSys/fc-retrieval-gateway/pkg/logging"
 	"github.com/ConsenSys/fc-retrieval-provider/pkg/provider"
@@ -30,14 +29,12 @@ func handleProviderGetGroupCID(w rest.ResponseWriter, request *fcrmessages.FCRMe
 	}
 	logging.Info("Found offers: %+v", len(offers))
 
-	// TODO: fix proofs and payments
+	// TODO: fix payments
 	roots := make([]string, len(offers))
-	proofs := make([]fcrmerkletree.FCRMerkleProof, len(offers))
 	fundedPaymentChannel := make([]bool, len(offers))
 	for i := 0; i < len(offers); i++ {
 		offer := offers[i]
 		roots[i] = offer.GetMerkleRoot()
-		proofs[i] = fcrmerkletree.FCRMerkleProof{}
 		fundedPaymentChannel[i] = false
 	}
 
@@ -45,7 +42,6 @@ func handleProviderGetGroupCID(w rest.ResponseWriter, request *fcrmessages.FCRMe
 		len(offers) > 0,
 		offers,
 		roots,
-		proofs,
 		fundedPaymentChannel,
 	)
 	if err2 != nil {
