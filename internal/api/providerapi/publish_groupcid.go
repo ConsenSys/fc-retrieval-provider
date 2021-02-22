@@ -1,4 +1,4 @@
-package gatewayapi
+package providerapi
 
 import (
 	"github.com/ConsenSys/fc-retrieval-gateway/pkg/cidoffer"

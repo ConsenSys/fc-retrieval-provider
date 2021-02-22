@@ -30,9 +30,9 @@ func handleClientCIDGroupPublishDHTAckRequest(w rest.ResponseWriter, request *fc
 	dummyAck, _ := fcrmessages.EncodeProviderDHTPublishGroupCIDAck(0, "")
 	response, _ := fcrmessages.EncodeClientCIDGroupPublishDHTAckResponse(cid, gatewayID, false, dummyMsg, dummyAck)
 
-	cids, ok := c.AcknowledgementMap[gatewayID.ToString()]
+	gateways, ok := c.AcknowledgementMap[cid.ToString()]
 	if ok {
-		ack, ok := cids[cid.ToString()]
+		ack, ok := gateways[gatewayID.ToString()]
 		if ok {
 			// Found an ack, update response
 			response, err = fcrmessages.EncodeClientCIDGroupPublishDHTAckResponse(cid, gatewayID, true, &ack.Msg, &ack.MsgAck)

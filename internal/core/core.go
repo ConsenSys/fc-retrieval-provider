@@ -48,7 +48,7 @@ type Core struct {
 	// Offers offered by this provider, it is threadsafe.
 	Offers *offers.Offers
 
-	// Acknowledgement for every single cid offer sent (map from gateway id -> map of cid -> ack)
+	// Acknowledgement for every single cid offer sent (map from cid id -> map of gateway -> ack)
 	AcknowledgementMap     map[string](map[string]DHTAcknowledgement)
 	AcknowledgementMapLock sync.RWMutex
 }

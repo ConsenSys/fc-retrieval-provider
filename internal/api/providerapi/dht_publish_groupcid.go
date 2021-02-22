@@ -1,4 +1,4 @@
-package gatewayapi
+package providerapi
 
 import (
 	"errors"
@@ -23,7 +23,7 @@ func RequestDHTProviderPublishGroupCID(offers []cidoffer.CidGroupOffer, gatewayI
 		return err
 	}
 
-	// Construct message
+	// Construct message, TODO: Add nonce
 	request, err := fcrmessages.EncodeProviderDHTPublishGroupCIDRequest(1, c.ProviderID, offers)
 	if err != nil {
 		return err
@@ -72,20 +72,18 @@ func RequestDHTProviderPublishGroupCID(offers []cidoffer.CidGroupOffer, gatewayI
 		return errors.New("Fail to verify the ack")
 	}
 
-	// Add acks to core map
-	c.AcknowledgementMapLock.Lock()
-	gatewayMap, ok := c.AcknowledgementMap[gatewayID.ToString()]
-	if ok {
-		c.AcknowledgementMap[gatewayID.ToString()] = make(map[string]core.DHTAcknowledgement)
-		gatewayMap = c.AcknowledgementMap[gatewayID.ToString()]
-	}
 	for _, offer := range offers {
-		// It should be a single cid offer
-		gatewayMap[(*offer.GetCIDs())[0].ToString()] = core.DHTAcknowledgement{
+		c.AcknowledgementMapLock.Lock()
+		defer c.AcknowledgementMapLock.Unlock()
+		cidMap, ok := c.AcknowledgementMap[(*offer.GetCIDs())[0].ToString()]
+		if !ok {
+			cidMap = make(map[string]core.DHTAcknowledgement)
+			c.AcknowledgementMap[(*offer.GetCIDs())[0].ToString()] = cidMap
+		}
+		cidMap[gatewayID.ToString()] = core.DHTAcknowledgement{
 			Msg:    *request,
 			MsgAck: *response,
 		}
 	}
-	c.AcknowledgementMapLock.Unlock()
 	return nil
 }
