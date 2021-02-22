@@ -18,6 +18,8 @@ github.com/ConsenSys/fc-retrieval-gateway v0.0.0-20210219144514-775327d10b4e h1:
 github.com/ConsenSys/fc-retrieval-gateway v0.0.0-20210219144514-775327d10b4e/go.mod h1:wcMswm8esnwsoIpQHz9SZrlbU0+75WkS/SRx8d7waxk=
 github.com/ConsenSys/fc-retrieval-gateway v0.0.0-20210222094222-f84a261111cd h1:NgS7oiGMNcKcD1Q/E9Dv9DpzMTUBrdt+CQBbE2kbS4w=
 github.com/ConsenSys/fc-retrieval-gateway v0.0.0-20210222094222-f84a261111cd/go.mod h1:wcMswm8esnwsoIpQHz9SZrlbU0+75WkS/SRx8d7waxk=
+github.com/ConsenSys/fc-retrieval-gateway v0.0.0-20210222110456-d962da39ea7f h1:O3Qa3gotl+Ttlli8UCCg2Op8e8wWVsVM2+ZJ/+WgHjc=
+github.com/ConsenSys/fc-retrieval-gateway v0.0.0-20210222110456-d962da39ea7f/go.mod h1:wcMswm8esnwsoIpQHz9SZrlbU0+75WkS/SRx8d7waxk=
 github.com/ConsenSys/fc-retrieval-register v0.0.0-20210217070341-af47745cf1a3 h1:+7xzXy0zSVCWSsAjHIb972LBTx5TvAc7x73y4Uf78u4=
 github.com/ConsenSys/fc-retrieval-register v0.0.0-20210217070341-af47745cf1a3/go.mod h1:csHmRc04HTAzZ/QSiOJFu1yAcnTRbcH6Knf8Z5dNpFY=
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=

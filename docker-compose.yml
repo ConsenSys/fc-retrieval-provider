@@ -7,7 +7,10 @@ services:
     networks:
       - shared
     ports:
-      - "${SERVICE_PORT}:${SERVICE_PORT}"
+      - "${BIND_CLIENT_API}:${BIND_CLIENT_API}"
+      - "${BIND_PROVIDER_API}:${BIND_PROVIDER_API}"
+      - "${BIND_GATEWAY_API}:${BIND_GATEWAY_API}"
+      - "${BIND_ADMIN_API}:${BIND_ADMIN_API}"
     env_file:
       - .env
      

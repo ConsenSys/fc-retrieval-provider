@@ -49,8 +49,8 @@ func startRestAPI(p *provider.Provider, errChannel chan<- error) {
 		errChannel <- err
 		return
 	}
-	bindAdminApi := p.Conf.GetString("SERVICE_PORT")
-	logging.Info("Running REST API on: %s", bindAdminApi)
+	bindAdminApi := p.Conf.GetString("BIND_ADMIN_API")
+	logging.Info("Running Admin API on: %s", bindAdminApi)
 	api.SetApp(router)
 	errChannel <- nil
 	logging.Error(http.ListenAndServe(":"+bindAdminApi, api.MakeHandler()).Error())

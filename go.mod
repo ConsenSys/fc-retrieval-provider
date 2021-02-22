@@ -3,7 +3,7 @@ module github.com/ConsenSys/fc-retrieval-provider
 go 1.15
 
 require (
-	github.com/ConsenSys/fc-retrieval-gateway v0.0.0-20210222094222-f84a261111cd
+	github.com/ConsenSys/fc-retrieval-gateway v0.0.0-20210222110456-d962da39ea7f
 	github.com/ConsenSys/fc-retrieval-register v0.0.0-20210217070341-af47745cf1a3
 	github.com/ant0ine/go-json-rest v3.3.2+incompatible
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
