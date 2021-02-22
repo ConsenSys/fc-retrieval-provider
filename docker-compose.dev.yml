@@ -8,6 +8,8 @@ services:
       - ./:/app
     networks:
       - shared
+    ports:
+      - "${SERVICE_PORT}:${SERVICE_PORT}"
     environment:
       - REGISTER_API_URL=http://register:9020
     restart: unless-stopped

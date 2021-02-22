@@ -3,7 +3,9 @@ module github.com/ConsenSys/fc-retrieval-provider
 go 1.15
 
 require (
-	github.com/ConsenSys/fc-retrieval-gateway v0.0.0-20210217015615-53f1282a2ff7
+	github.com/ConsenSys/fc-retrieval-gateway v0.0.0-20210222094222-f84a261111cd
+	github.com/ConsenSys/fc-retrieval-register v0.0.0-20210217070341-af47745cf1a3
+	github.com/ant0ine/go-json-rest v3.3.2+incompatible
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/joho/godotenv v1.3.0
 	github.com/kr/text v0.2.0 // indirect

@@ -1,117 +1,130 @@
 package provider
 
 import (
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/spf13/viper"
-
+	"github.com/ConsenSys/fc-retrieval-gateway/pkg/cidoffer"
 	"github.com/ConsenSys/fc-retrieval-gateway/pkg/fcrmessages"
 	"github.com/ConsenSys/fc-retrieval-gateway/pkg/fcrtcpcomms"
-	log "github.com/ConsenSys/fc-retrieval-gateway/pkg/logging"
+	"github.com/ConsenSys/fc-retrieval-gateway/pkg/logging"
 	"github.com/ConsenSys/fc-retrieval-gateway/pkg/nodeid"
 	"github.com/ConsenSys/fc-retrieval-gateway/pkg/register"
-
-	"github.com/ConsenSys/fc-retrieval-provider/internal/dummy"
 )
 
 // Provider configuration
 type Provider struct {
-	Conf            *viper.Viper
-	GatewayCommPool *fcrtcpcomms.CommunicationPool
+	Conf            		*viper.Viper
+	GatewayCommPool 		*fcrtcpcomms.CommunicationPool
+	ProtocolVersion			int32
+	ProtocolSupported		[]int32
+	Offers     					map[string]([]*cidoffer.CidGroupOffer)
 }
 
-// NewProvider returns new provider
-func NewProvider(conf *viper.Viper) *Provider {
-	gatewayCommPool := fcrtcpcomms.NewCommunicationPool(make(map[string]register.RegisteredNode), &sync.RWMutex{})
-	return &Provider{
-		Conf:            conf,
-		GatewayCommPool: gatewayCommPool,
+// Single instance of the gateway
+var instance *Provider
+var doOnce sync.Once
+
+// GetSingleInstance returns the single instance of the provider
+func GetSingleInstance(confs ...*viper.Viper) *Provider {
+	doOnce.Do(func() {
+		conf := getConf(confs)
+		protocolVersion := conf.GetInt32("PROTOCOL_VERSION")
+		protocolSupported := conf.GetInt32("PROTOCOL_SUPPORTED")
+		gatewayCommPool := fcrtcpcomms.NewCommunicationPool(make(map[string]register.RegisteredNode), &sync.RWMutex{})
+		instance = &Provider{
+			Conf:            		conf,
+			ProtocolVersion:		protocolVersion,
+			ProtocolSupported:	[]int32{protocolVersion, protocolSupported},
+			GatewayCommPool: 		gatewayCommPool,
+			Offers:          		make(map[string]([]*cidoffer.CidGroupOffer)),
+		}
+	})
+	return instance
+}
+
+func getConf(confs []*viper.Viper) (*viper.Viper) {
+	if len(confs) == 0 {
+		logging.ErrorAndPanic("No settings supplied to Gateway start-up")
 	}
-}
-
-// Start a provider
-func (provider *Provider) Start() {
-	provider.greet()
-	provider.registration()
-	provider.loop()
-}
-
-// Greeting
-func (provider *Provider) greet() {
-	scheme := provider.Conf.GetString("SERVICE_SCHEME")
-	host := provider.Conf.GetString("SERVICE_HOST")
-	port := provider.Conf.GetString("SERVICE_PORT")
-	log.Info("Provider started at %s://%s:%s", scheme, host, port)
-}
-
-// Register the provider
-func (provider *Provider) registration() {
-	reg := register.ProviderRegister{
-		Address:            provider.Conf.GetString("PROVIDER_ADDRESS"),
-		NetworkGatewayInfo: provider.Conf.GetString("PROVIDER_NETWORK_INFO"),
-		RegionCode:         provider.Conf.GetString("PROVIDER_REGION_CODE"),
-		RootSigningKey:     provider.Conf.GetString("PROVIDER_ROOT_SIGNING_KEY"),
-		SigningKey:         provider.Conf.GetString("PROVIDER_SIGNING_KEY"),
+	if len(confs) != 1 {
+		logging.ErrorAndPanic("More than one sets of settings supplied to Gateway start-up")
 	}
-
-	err := reg.RegisterProvider(provider.Conf.GetString("REGISTER_API_URL"))
-	if err != nil {
-		log.Error("Provider not registered: %v", err)
-	}
+	return confs[0]
 }
 
 // SendMessageToGateway to gateway
-func SendMessageToGateway(message *fcrmessages.FCRMessage, nodeID *nodeid.NodeID, gCommPool *fcrtcpcomms.CommunicationPool) error {
+func (p *Provider) SendMessageToGateway(message *fcrmessages.FCRMessage, nodeID *nodeid.NodeID) (
+	*fcrmessages.FCRMessage,
+	error,
+) {
+	tcpInactivityTimeout := time.Duration(p.Conf.GetInt("TCP_INACTIVITY_TIMEOUT")) * time.Millisecond
+	gCommPool := p.GatewayCommPool
 	gComm, err := gCommPool.GetConnForRequestingNode(nodeID, fcrtcpcomms.AccessFromProvider)
 	if err != nil {
-		log.Error("Connection issue: %v", err)
+		logging.Error("Connection issue: %v", err)
 		if gComm != nil {
-			log.Debug("Closing connection ...")
+			logging.Debug("Closing connection ...")
 			gComm.Conn.Close()
 		}
-		log.Debug("Removing connection from pool ...")
+		logging.Debug("Removing connection from pool ...")
 		gCommPool.DeregisterNodeCommunication(nodeID)
-		return err
+		return nil, err
 	}
 	gComm.CommsLock.Lock()
 	defer gComm.CommsLock.Unlock()
-	log.Info("Send message to: %v, message: %v", nodeID.ToString(), message)
+	logging.Info("Send message to: %v, message: %v", nodeID.ToString(), message)
 	err = fcrtcpcomms.SendTCPMessage(
 		gComm.Conn,
 		message,
-		30000)
+		tcpInactivityTimeout)
 	if err != nil {
-		log.Error("Message not sent: %v", err)
+		logging.Error("Message not sent: %v", err)
 		if gComm != nil {
-			log.Debug("Closing connection ...")
+			logging.Debug("Closing connection ...")
 			gComm.Conn.Close()
 		}
-		log.Debug("Removing connection from pool ...")
+		logging.Debug("Removing connection from pool ...")
 		gCommPool.DeregisterNodeCommunication(nodeID)
-		return err
+		return nil, err
 	}
-	return nil
+	response, err := fcrtcpcomms.ReadTCPMessage(gComm.Conn, tcpInactivityTimeout)
+	if err != nil && fcrtcpcomms.IsTimeoutError(err) {
+		// Timeout can be ignored. Since this message can expire.
+		return nil, nil
+	} else if err != nil {
+		logging.Error("Message not sent: %v", err)
+		if gComm != nil {
+			logging.Debug("Closing connection ...")
+			gComm.Conn.Close()
+		}
+		logging.Debug("Removing connection from pool ...")
+		gCommPool.DeregisterNodeCommunication(nodeID)
+		return nil, err
+	}
+	return response, nil
 }
 
-// Start infinite loop
-func (provider *Provider) loop() {
-	for {
-		gateways, err := register.GetRegisteredGateways(provider.Conf.GetString("REGISTER_API_URL"))
-		if err != nil {
-			log.Error("Unable to get registered gateways: %v", err)
+// GetAllOffers from offers map
+func (p *Provider) GetAllOffers() ([]*cidoffer.CidGroupOffer) {
+	var offers []*cidoffer.CidGroupOffer
+	for _, values := range p.Offers {
+		for _, value := range values {
+			offers = append(offers, value)
 		}
-		for _, gw := range gateways {
-			message := dummy.GenerateDummyMessage()
-			log.Info("Message: %v", message)
-			gatewayID, err := nodeid.NewNodeIDFromString(gw.NodeID)
-			if err != nil {
-				log.Error("Error with nodeID %v: %v", gw.NodeID, err)
-				continue
-			}
-			provider.GatewayCommPool.RegisteredNodeMap[gw.NodeID] = &gw
-			SendMessageToGateway(message, gatewayID, provider.GatewayCommPool)
-		}
-		time.Sleep(25 * time.Second)
 	}
+	return offers
+}
+
+// GetOffersByGatewayID from offers map
+func (p *Provider) GetOffersByGatewayID(gatewayID *nodeid.NodeID) ([]*cidoffer.CidGroupOffer) {
+	return p.Offers[strings.ToLower(gatewayID.ToString())]
+}
+
+// AppendOffer to offers map
+func (p *Provider) AppendOffer(gatewayID *nodeid.NodeID, offer *cidoffer.CidGroupOffer) {
+	var offers = p.Offers[strings.ToLower(gatewayID.ToString())]
+	p.Offers[strings.ToLower(gatewayID.ToString())] = append(offers, offer)
 }
