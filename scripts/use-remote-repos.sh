@@ -34,21 +34,21 @@ check_repo() {
     echo "$1 repo branch: $OTHER_REPO_BRANCH"
     BRANCH_EXISTS=`git branch -r --list origin/$REG_BRANCH`
 
-    cd $REG_DIR
-
     if [ $REG_BRANCH != $OTHER_REPO_BRANCH ]; then 
         echo "provider and $1 branch do not match"
         if [ -n "$BRANCH_EXISTS" ]; then
             echo "ERROR: Branch $REG_BRANCH exists on the $1 repo, but the $1 repo is currently using branch $OTHER_REPO_BRANCH"
             exit 1
         fi
-
+        cd $REG_DIR
         echo "Calling go get to use main on $1"
         go get github.com/ConsenSys/fc-retrieval-$1@main
     else
         echo register and $1 branch match
-        echo "Calling go get to use $OTHER_REPO_BRANCH on fc-retrieval-$1"
-        go get github.com/ConsenSys/fc-retrieval-$1@$REG_BRANCH
+        GITHASH=`git rev-parse $REG_BRANCH`
+        echo "Calling go get to use $OTHER_REPO_BRANCH on fc-retrieval-$1 ($GITHASH)"
+        cd $REG_DIR
+        go get -u -t -v github.com/ConsenSys/fc-retrieval-$1@$GITHASH
     fi
 }
 
