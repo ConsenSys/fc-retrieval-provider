@@ -21,20 +21,21 @@ import (
 
 	"github.com/ConsenSys/fc-retrieval-gateway/pkg/fcrmessages"
 	"github.com/ConsenSys/fc-retrieval-gateway/pkg/logging"
-	"github.com/ConsenSys/fc-retrieval-provider/pkg/provider"
+	"github.com/ConsenSys/fc-retrieval-provider/internal/core"
+	"github.com/ConsenSys/fc-retrieval-provider/internal/util/settings"
 	"github.com/ant0ine/go-json-rest/rest"
 )
 
 // StartAdminRestAPI starts the REST API as a separate go routine.
 // Any start-up errors are returned.
-func StartAdminRestAPI(p *provider.Provider) error {
+func StartAdminRestAPI(settings settings.AppSettings) error {
 	// Start the REST API and block until the error code is set.
 	errChan := make(chan error, 1)
-	go startRestAPI(p, errChan)
+	go startRestAPI(settings, errChan)
 	return <-errChan
 }
 
-func startRestAPI(p *provider.Provider, errChannel chan<- error) {
+func startRestAPI(settings settings.AppSettings, errChannel chan<- error) {
 	api := rest.NewApi()
 	api.Use(rest.DefaultDevStack...)
 	router, err := rest.MakeRouter(
@@ -49,17 +50,16 @@ func startRestAPI(p *provider.Provider, errChannel chan<- error) {
 		errChannel <- err
 		return
 	}
-	bindAdminApi := p.Conf.GetString("BIND_ADMIN_API")
-	logging.Info("Running Admin API on: %s", bindAdminApi)
+	logging.Info("Running Admin API on: %s", settings.BindAdminAPI)
 	api.SetApp(router)
 	errChannel <- nil
-	logging.Error(http.ListenAndServe(":"+bindAdminApi, api.MakeHandler()).Error())
+	logging.Error(http.ListenAndServe(":"+settings.BindAdminAPI, api.MakeHandler()).Error())
 	panic("Error binding")
 }
 
 func msgRouter(w rest.ResponseWriter, r *rest.Request) {
 	// Get core structure
-	p := provider.GetSingleInstance()
+	c := core.GetSingleInstance()
 
 	logging.Trace("Received request via /v1 API")
 	content, err := ioutil.ReadAll(r.Body)
@@ -74,7 +74,7 @@ func msgRouter(w rest.ResponseWriter, r *rest.Request) {
 		rest.Error(w, "Error empty request", http.StatusBadRequest)
 		return
 	}
-	
+
 	request, err := fcrmessages.FCRMsgFromBytes(content)
 	if err != nil {
 		logging.Error("Failed to decode payload: %s.", err.Error())
@@ -82,26 +82,25 @@ func msgRouter(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	checked := checkProtocol(w, request, p)
+	checked := checkProtocol(w, request, c)
 	if checked == false {
 		return
 	}
 
 	switch request.GetMessageType() {
-		case fcrmessages.ProviderPublishGroupCIDRequestType:
-			handleProviderPublishGroupCID(w, request, p)
-		case fcrmessages.ProviderAdminGetGroupCIDRequestType:
-			handleProviderGetGroupCID(w, request, p)
-		default:
-			logging.Warn("Client Request: Unknown message type: %d", request.GetMessageType())
-			rest.Error(w, "Unknown message type", http.StatusBadRequest)
+	case fcrmessages.ProviderPublishGroupCIDRequestType:
+		handleProviderPublishGroupCID(w, request, c)
+	case fcrmessages.ProviderAdminGetGroupCIDRequestType:
+		handleProviderGetGroupCID(w, request, c)
+	default:
+		logging.Warn("Client Request: Unknown message type: %d", request.GetMessageType())
+		rest.Error(w, "Unknown message type", http.StatusBadRequest)
 	}
 }
 
-
-func checkProtocol(w rest.ResponseWriter, request *fcrmessages.FCRMessage, p *provider.Provider) bool {
-	protocolVersion := p.ProtocolVersion
-	protocolSupported := p.ProtocolSupported
+func checkProtocol(w rest.ResponseWriter, request *fcrmessages.FCRMessage, c *core.Core) bool {
+	protocolVersion := c.ProtocolVersion
+	protocolSupported := c.ProtocolSupported
 	// Only process the rest of the message if the protocol version is understood.
 	if request.ProtocolVersion != protocolVersion {
 		// Check to see if the client supports the gateway's preferred version
