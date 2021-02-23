@@ -11,6 +11,8 @@ services:
       - "${BIND_PROVIDER_API}:${BIND_PROVIDER_API}"
       - "${BIND_GATEWAY_API}:${BIND_GATEWAY_API}"
       - "${BIND_ADMIN_API}:${BIND_ADMIN_API}"
+    volumes:
+      - ./logs:${LOG_DIR}
     env_file:
       - .env
      

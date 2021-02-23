@@ -5,6 +5,7 @@ services:
       dockerfile: Dockerfile.dev
       context: .
     volumes:
+      - ./logs:${LOG_DIR}
       - ./:/app
     networks:
       - shared
