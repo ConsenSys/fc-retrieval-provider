@@ -84,6 +84,16 @@ func RequestDHTProviderPublishGroupCID(offers []cidoffer.CidGroupOffer, gatewayI
 			Msg:    *request,
 			MsgAck: *response,
 		}
+		// Add to sent offers
+		c.SingleOffers.Add(&offer)
+		c.NodeOfferMapLock.Lock()
+		defer c.NodeOfferMapLock.Unlock()
+		sentOffers, ok := c.NodeOfferMap[gatewayID.ToString()]
+		if !ok {
+			sentOffers = make([]cidoffer.CidGroupOffer, 0)
+		}
+		sentOffers = append(sentOffers, offer)
+		c.NodeOfferMap[gatewayID.ToString()] = sentOffers
 	}
 	return nil
 }
