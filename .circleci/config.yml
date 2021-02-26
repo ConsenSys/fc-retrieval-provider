@@ -3,7 +3,6 @@ version: 2.1
 jobs:
   publishDocker:
     environment:
-      REGISTRY: consensys/
       IMAGE_NAME: consensys/fc-retrieval-provider
       IMAGE_VERSION: dev
     docker:
