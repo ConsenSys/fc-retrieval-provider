@@ -53,5 +53,5 @@ check_repo() {
 }
 
 
-check_repo gateway ../fc-retrieval-common
+check_repo common ../fc-retrieval-common
 go mod tidy
