@@ -3,8 +3,8 @@ package gatewayapi
 import (
 	"net"
 
-	"github.com/ConsenSys/fc-retrieval-gateway/pkg/fcrmessages"
-	log "github.com/ConsenSys/fc-retrieval-gateway/pkg/logging"
+	"github.com/ConsenSys/fc-retrieval-common/pkg/fcrmessages"
+	log "github.com/ConsenSys/fc-retrieval-common/pkg/logging"
 )
 
 func handleSingleCIDOffersPublishRequest(conn net.Conn, request *fcrmessages.FCRMessage) error {

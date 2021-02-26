@@ -1,8 +1,8 @@
 package main
 
 import (
-	log "github.com/ConsenSys/fc-retrieval-gateway/pkg/logging"
-	"github.com/ConsenSys/fc-retrieval-gateway/pkg/register"
+	log "github.com/ConsenSys/fc-retrieval-common/pkg/logging"
+	"github.com/ConsenSys/fc-retrieval-common/pkg/register"
 	_ "github.com/joho/godotenv/autoload"
 
 	"github.com/ConsenSys/fc-retrieval-provider/config"

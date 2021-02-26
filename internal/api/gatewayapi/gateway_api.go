@@ -3,9 +3,9 @@ package gatewayapi
 import (
 	"net"
 
-	"github.com/ConsenSys/fc-retrieval-gateway/pkg/fcrmessages"
-	"github.com/ConsenSys/fc-retrieval-gateway/pkg/fcrtcpcomms"
-	log "github.com/ConsenSys/fc-retrieval-gateway/pkg/logging"
+	"github.com/ConsenSys/fc-retrieval-common/pkg/fcrmessages"
+	"github.com/ConsenSys/fc-retrieval-common/pkg/fcrtcpcomms"
+	log "github.com/ConsenSys/fc-retrieval-common/pkg/logging"
 	"github.com/ConsenSys/fc-retrieval-provider/internal/util/settings"
 )
 

@@ -4,8 +4,8 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/ConsenSys/fc-retrieval-gateway/pkg/fcrmessages"
-	log "github.com/ConsenSys/fc-retrieval-gateway/pkg/logging"
+	"github.com/ConsenSys/fc-retrieval-common/pkg/fcrmessages"
+	log "github.com/ConsenSys/fc-retrieval-common/pkg/logging"
 	"github.com/ConsenSys/fc-retrieval-provider/internal/core"
 	"github.com/ConsenSys/fc-retrieval-provider/internal/util/settings"
 	"github.com/ant0ine/go-json-rest/rest"
