@@ -1,6 +1,7 @@
 package main
 
 import (
+	"strings"
 	log "github.com/ConsenSys/fc-retrieval-common/pkg/logging"
 	"github.com/ConsenSys/fc-retrieval-common/pkg/register"
 	_ "github.com/joho/godotenv/autoload"
@@ -50,7 +51,8 @@ func main() {
 	c.RegisteredGatewaysMapLock.Lock()
 	log.Info("All registered gateways: %+v", gateways)
 	for _, gateway := range gateways {
-		c.RegisteredGatewaysMap[gateway.NodeID] = &gateway
+		log.Info("Add to registered gateways map: nodeID=%+v", gateway.NodeID)
+		c.RegisteredGatewaysMap[strings.ToLower(gateway.NodeID)] = &gateway
 	}
 	c.RegisteredGatewaysMapLock.Unlock()
 
