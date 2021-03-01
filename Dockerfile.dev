@@ -2,9 +2,9 @@ FROM golang:latest
 
 RUN apt-get update && apt-get install make bash
 
-WORKDIR /app
+WORKDIR /go/src/app
 
-COPY ./ /app
+COPY . .
 
 RUN go mod download -x
 

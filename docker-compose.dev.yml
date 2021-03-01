@@ -6,7 +6,9 @@ services:
       context: .
     volumes:
       - ./logs:${LOG_DIR}
-      - ./:/app
+      - ./:/go/src/app
+      - ./go.local.mod:/go/src/app/go.mod
+      - ../fc-retrieval-common:/go/src/fc-retrieval-common
     networks:
       - shared
     ports:
