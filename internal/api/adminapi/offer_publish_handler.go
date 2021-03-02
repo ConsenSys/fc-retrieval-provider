@@ -2,9 +2,9 @@ package adminapi
 
 import (
 	"bytes"
-	"net/http"
 
 	"github.com/ConsenSys/fc-retrieval-common/pkg/cidoffer"
+	"github.com/ConsenSys/fc-retrieval-common/pkg/fcrcrypto"
 	"github.com/ConsenSys/fc-retrieval-common/pkg/fcrmessages"
 	"github.com/ConsenSys/fc-retrieval-common/pkg/fcrtcpcomms"
 	"github.com/ConsenSys/fc-retrieval-common/pkg/logging"
@@ -15,7 +15,41 @@ import (
 )
 
 func handleProviderPublishGroupCID(w rest.ResponseWriter, request *fcrmessages.FCRMessage, c *core.Core) {
+	if c.ProviderPrivateKey == nil {
+		logging.Error("This provider hasn't been initialised by the admin.")
+		return
+	}
 	logging.Info("handleProviderPublishGroupCID: %+v", request)
+
+	cids, price, expiry, qos, err := fcrmessages.DecodeProviderAdminPublishGroupCIDRequest(request)
+	if err != nil {
+		logging.Error("Error in decoding the incoming request")
+		return
+	}
+	offer, err := cidoffer.NewCidGroupOffer(c.ProviderID, &cids, price, expiry, qos)
+	if err != nil {
+		logging.Error("Error in creating offer")
+		return
+	}
+	// Sign the offer
+	err = offer.SignOffer(func(msg interface{}) (string, error) {
+		return fcrcrypto.SignMessage(c.ProviderPrivateKey, c.ProviderPrivateKeyVersion, msg)
+	})
+	if err != nil {
+		logging.Error("Error in signing the offer.")
+		return
+	}
+	digest := offer.GetMessageDigest()
+
+	// TODO Add nonce.
+	offerMsg, err := fcrmessages.EncodeProviderPublishGroupCIDRequest(1, offer)
+	if err != nil {
+		logging.Error("Error in encoding msg")
+		return
+	}
+
+	// Add offer to storage
+	c.GroupOffers.Add(offer)
 
 	c.RegisteredGatewaysMapLock.RLock()
 	defer c.RegisteredGatewaysMapLock.RUnlock()
@@ -35,7 +69,7 @@ func handleProviderPublishGroupCID(w rest.ResponseWriter, request *fcrmessages.F
 		gComm.CommsLock.Lock()
 		defer gComm.CommsLock.Unlock()
 
-		err = fcrtcpcomms.SendTCPMessage(gComm.Conn, request, settings.DefaultTCPInactivityTimeout)
+		err = fcrtcpcomms.SendTCPMessage(gComm.Conn, offerMsg, settings.DefaultTCPInactivityTimeout)
 		if err != nil {
 			logging.Error("Error with send message: %v", err)
 			continue
@@ -53,12 +87,9 @@ func handleProviderPublishGroupCID(w rest.ResponseWriter, request *fcrmessages.F
 			continue
 		}
 		logging.Info("Received digest: %v", candidate)
-		_, offer, _ := fcrmessages.DecodeProviderPublishGroupCIDRequest(request)
-		digest := offer.GetMessageDigest()
+
 		if bytes.Equal(candidate[:], digest[:]) {
 			logging.Info("Digest is OK! Add offer to storage")
-			// TODO
-			c.GroupOffers.Add(offer)
 			c.NodeOfferMapLock.Lock()
 			defer c.NodeOfferMapLock.Unlock()
 			sentOffers, ok := c.NodeOfferMap[gatewayID.ToString()]
@@ -71,5 +102,12 @@ func handleProviderPublishGroupCID(w rest.ResponseWriter, request *fcrmessages.F
 			logging.Info("Digest is not OK")
 		}
 	}
-	w.WriteHeader(http.StatusOK)
+
+	response, err := fcrmessages.EncodeProviderAdminPublishOfferAck(true)
+	if err != nil {
+		logging.Error("Error in encoding response.")
+		return
+	}
+
+	w.WriteJson(response)
 }

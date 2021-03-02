@@ -2,6 +2,8 @@ package main
 
 import (
 	"strings"
+	"time"
+
 	log "github.com/ConsenSys/fc-retrieval-common/pkg/logging"
 	"github.com/ConsenSys/fc-retrieval-common/pkg/register"
 	_ "github.com/joho/godotenv/autoload"
@@ -26,22 +28,23 @@ func main() {
 	// Initialise the provider's core structure
 	c := core.GetSingleInstance(&settings)
 
-	// A few things TODO:
-	// 1. Loop and check if this provider is registered, exit loop when this provider is registered by the admin
-	// 2. Loop and check if this provider has a key provided, exit loop when a key has been provided by the admin
-	// 3. (Concurrently), get all registered gateways every 10 seconds, this can be done by a seperate go-routine.
-	// Register provider, TO BE REPLACED, as the registration is done in admin
-	providerReg := register.ProviderRegister{
-		NodeID:             settings.ProviderID,
-		Address:            settings.ProviderAddress,
-		RootSigningKey:     settings.ProviderRootSigningKey,
-		SigningKey:         settings.ProviderSigningKey,
-		NetworkInfoGateway: settings.NetworkInfoGateway,
-		NetworkInfoClient:  settings.NetworkInfoClient,
-		NetworkInfoAdmin:   settings.NetworkInfoAdmin,
-		RegionCode:         settings.ProviderRegionCode,
+	// Start admin API first
+	err := adminapi.StartAdminRestAPI(settings)
+	if err != nil {
+		log.Error("Error starting admin tcp server: %s", err.Error())
+		return
 	}
-	providerReg.RegisterProvider(settings.RegisterAPIURL)
+	// Configure what should be called if Control-C is hit.
+	util.SetUpCtrlCExit(gracefulExit)
+
+	// Wait until private key is set, check every 1 second
+	for {
+		if c.ProviderPrivateKey != nil {
+			break
+		}
+		time.Sleep(time.Second)
+	}
+	log.Info("Provider private key set.")
 
 	// Get all registerd Gateways
 	gateways, err := register.GetRegisteredGateways(settings.RegisterAPIURL)
@@ -66,14 +69,6 @@ func main() {
 	if err != nil {
 		log.Error("Error starting gateway tcp server: %s", err.Error())
 	}
-
-	err = adminapi.StartAdminRestAPI(settings)
-	if err != nil {
-		log.Error("Error starting admin tcp server: %s", err.Error())
-		return
-	}
-	// Configure what should be called if Control-C is hit.
-	util.SetUpCtrlCExit(gracefulExit)
 
 	log.Info("Filecoin Provider Start-up Complete")
 

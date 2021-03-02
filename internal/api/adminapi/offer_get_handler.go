@@ -9,6 +9,11 @@ import (
 )
 
 func handleProviderGetGroupCID(w rest.ResponseWriter, request *fcrmessages.FCRMessage, c *core.Core) {
+	if c.ProviderPrivateKey == nil {
+		logging.Error("This provider hasn't been initialised by the admin.")
+		return
+	}
+
 	logging.Info("handleProviderGetGroupCID: %+v", request)
 	gatewayIDs, err1 := fcrmessages.DecodeProviderAdminGetGroupCIDRequest(request)
 	if err1 != nil {
