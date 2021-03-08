@@ -10,7 +10,7 @@ import (
 	"github.com/ConsenSys/fc-retrieval-common/pkg/logging"
 	log "github.com/ConsenSys/fc-retrieval-common/pkg/logging"
 	"github.com/ConsenSys/fc-retrieval-common/pkg/nodeid"
-	"github.com/ConsenSys/fc-retrieval-common/pkg/register"
+	"github.com/ConsenSys/fc-retrieval-register/pkg/register"
 	"github.com/ConsenSys/fc-retrieval-provider/internal/offers"
 	"github.com/ConsenSys/fc-retrieval-provider/internal/util/settings"
 )
@@ -100,7 +100,7 @@ func GetSingleInstance(confs ...*settings.AppSettings) *Core {
 			AcknowledgementMap:     make(map[string](map[string]DHTAcknowledgement)),
 			AcknowledgementMapLock: sync.RWMutex{},
 		}
-		instance.GatewayCommPool = fcrtcpcomms.NewCommunicationPool(instance.RegisteredGatewaysMap, &instance.RegisteredGatewaysMapLock)
+		instance.GatewayCommPool = fcrtcpcomms.NewCommunicationPool(&instance.RegisteredGatewaysMap, &instance.RegisteredGatewaysMapLock)
 	})
 	return instance
 }

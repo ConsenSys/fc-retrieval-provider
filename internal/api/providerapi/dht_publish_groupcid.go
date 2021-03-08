@@ -22,12 +22,27 @@ func RequestDHTProviderPublishGroupCID(offers []cidoffer.CidGroupOffer, gatewayI
 	if err != nil {
 		return err
 	}
+	gComm.CommsLock.Lock()
+	defer gComm.CommsLock.Unlock()
+
+	// Get the gateways's signing key
+	c.RegisteredGatewaysMapLock.RLock()
+	defer c.RegisteredGatewaysMapLock.RUnlock()
+	pubKey, err := c.RegisteredGatewaysMap[gatewayID.ToString()].GetSigningKey()
+	if err != nil {
+		return err
+	}
 
 	// Construct message, TODO: Add nonce
 	request, err := fcrmessages.EncodeProviderDHTPublishGroupCIDRequest(1, c.ProviderID, offers)
 	if err != nil {
 		return err
 	}
+	// Sign the request
+	request.SignMessage(func(msg interface{}) (string, error) {
+		return fcrcrypto.SignMessage(c.ProviderPrivateKey, c.ProviderPrivateKeyVersion, msg)
+	})
+	// Send request
 	err = fcrtcpcomms.SendTCPMessage(gComm.Conn, request, settings.DefaultTCPInactivityTimeout)
 	if err != nil {
 		c.GatewayCommPool.DeregisterNodeCommunication(gatewayID)
@@ -39,42 +54,44 @@ func RequestDHTProviderPublishGroupCID(offers []cidoffer.CidGroupOffer, gatewayI
 		c.GatewayCommPool.DeregisterNodeCommunication(gatewayID)
 		return err
 	}
-	// Need to verify the acks
-	nonce, sig, err := fcrmessages.DecodeProviderDHTPublishGroupCIDAck(response)
+	// Verify the response
+	ok, err := response.VerifySignature(func(sig string, msg interface{}) (bool, error) {
+		return fcrcrypto.VerifyMessage(pubKey, sig, msg)
+	})
 	if err != nil {
 		return err
 	}
-
-	// Check nonce
-	if nonce != 1 {
-		return errors.New("Nonce mismatch")
-	}
-
-	// Check signature
-	// Get the public key
-	c.RegisteredGatewaysMapLock.RLock()
-	defer c.RegisteredGatewaysMapLock.RUnlock()
-	gateway, ok := c.RegisteredGatewaysMap[gatewayID.ToString()]
 	if !ok {
-		return errors.New("Gateway public key not found")
-	}
-	pubKey, err := gateway.GetSigningKey()
-	if err != nil {
-		return errors.New("Fail to get signing key from gateway registration info")
+		return errors.New("Fail to verify the response")
 	}
 
+	// Verify the acks
+	// TODO: Check nonce
+	_, sig, err := fcrmessages.DecodeProviderDHTPublishGroupCIDAck(response)
+	if err != nil {
+		return err
+	}
 	ok, err = fcrcrypto.VerifyMessage(pubKey, sig, request)
 	if err != nil {
 		return errors.New("Internal error in verifying ack")
 	}
-
 	if !ok {
 		return errors.New("Fail to verify the ack")
 	}
 
+	// Add offer to ack map and storage
 	for _, offer := range offers {
+		// Add offer to storage
+		c.NodeOfferMapLock.Lock()
+		sentOffers, ok := c.NodeOfferMap[gatewayID.ToString()]
+		if !ok {
+			sentOffers = make([]cidoffer.CidGroupOffer, 0)
+		}
+		sentOffers = append(sentOffers, offer)
+		c.NodeOfferMap[gatewayID.ToString()] = sentOffers
+		c.NodeOfferMapLock.Unlock()
+		// Add offer to ack map
 		c.AcknowledgementMapLock.Lock()
-		defer c.AcknowledgementMapLock.Unlock()
 		cidMap, ok := c.AcknowledgementMap[(*offer.GetCIDs())[0].ToString()]
 		if !ok {
 			cidMap = make(map[string]core.DHTAcknowledgement)
@@ -84,6 +101,7 @@ func RequestDHTProviderPublishGroupCID(offers []cidoffer.CidGroupOffer, gatewayI
 			Msg:    *request,
 			MsgAck: *response,
 		}
+		c.AcknowledgementMapLock.Unlock()
 	}
 	return nil
 }

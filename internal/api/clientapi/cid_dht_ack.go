@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/ConsenSys/fc-retrieval-common/pkg/cidoffer"
+	"github.com/ConsenSys/fc-retrieval-common/pkg/fcrcrypto"
 	"github.com/ConsenSys/fc-retrieval-common/pkg/fcrmessages"
 	log "github.com/ConsenSys/fc-retrieval-common/pkg/logging"
 	"github.com/ConsenSys/fc-retrieval-provider/internal/core"
@@ -46,5 +47,9 @@ func handleClientCIDGroupPublishDHTAckRequest(w rest.ResponseWriter, request *fc
 	}
 
 	// Respond
+	// Sign the response
+	response.SignMessage(func(msg interface{}) (string, error) {
+		return fcrcrypto.SignMessage(c.ProviderPrivateKey, c.ProviderPrivateKeyVersion, msg)
+	})
 	w.WriteJson(response)
 }
