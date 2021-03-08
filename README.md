@@ -1,6 +1,6 @@
 # Filecoin Retrieval Pro
 
-Filecoin Secondary Retrieval Market Provider
+Filecoin Secondary Retrieval Market Provider.
 
 ## Start the service
 
