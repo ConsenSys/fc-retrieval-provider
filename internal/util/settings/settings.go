@@ -25,9 +25,6 @@ const DefaultTCPInactivityTimeout = 100 * time.Millisecond
 // DefaultLongTCPInactivityTimeout is the default timeout for long TCP inactivity. This timeout should never be ignored.
 const DefaultLongTCPInactivityTimeout = 5000 * time.Millisecond
 
-// DefaultRefreshDuration is the default register refresh duration
-const DefaultRegisterRefreshDuration = 5000 * time.Millisecond
-
 // AppSettings defines the server configuraiton
 type AppSettings struct {
 	BindRestAPI    string `mapstructure:"BIND_REST_API"`    // Port number to bind to for client REST API.
@@ -46,16 +43,15 @@ type AppSettings struct {
 	ProviderID     string `mapstructure:"PROVIDER_ID"`      // Node id of this provider
 	ProviderSigAlg uint8  `mapstructure:"PROVIDER_SIG_ALG"` // Signature algorithm to be used by private key.
 
-	RegisterAPIURL         	string 				`mapstructure:"REGISTER_API_URL"`						// Register service url
-	RegisterRefreshDuration	time.Duration	`mapstructure:"REGISTER_REFRESH_DURATION"`	// Register refresh duration
-	ProviderAddress        	string 				`mapstructure:"PROVIDER_ADDRESS"`          	// Provider address
-	ProviderRootSigningKey 	string 				`mapstructure:"PROVIDER_ROOT_SIGNING_KEY"` 	// Provider root signing key
-	ProviderSigningKey     	string 				`mapstructure:"PROVIDER_SIGNING_KEY"`      	// Provider signing key
-	ProviderRegionCode     	string 				`mapstructure:"PROVIDER_REGION_CODE"`      	// Provider region code
-	NetworkInfoClient      	string 				`mapstructure:"NETWORK_CLIENT_INFO"`       	// Provider client network info
-	NetworkInfoGateway     	string 				`mapstructure:"NETWORK_GATEWAY_INFO"`      	// Provider provider network info
-	NetworkInfoAdmin       	string 				`mapstructure:"NETWORK_ADMIN_INFO"`        	// Provider admin network info
+	RegisterAPIURL         string `mapstructure:"REGISTER_API_URL"`          // Register service url
+	ProviderAddress        string `mapstructure:"PROVIDER_ADDRESS"`          // Provider address
+	ProviderRootSigningKey string `mapstructure:"PROVIDER_ROOT_SIGNING_KEY"` // Provider root signing key
+	ProviderSigningKey     string `mapstructure:"PROVIDER_SIGNING_KEY"`      // Provider signing key
+	ProviderRegionCode     string `mapstructure:"PROVIDER_REGION_CODE"`      // Provider region code
+	NetworkInfoClient      string `mapstructure:"NETWORK_CLIENT_INFO"`       // Provider client network info
+	NetworkInfoGateway     string `mapstructure:"NETWORK_GATEWAY_INFO"`      // Provider provider network info
+	NetworkInfoAdmin       string `mapstructure:"NETWORK_ADMIN_INFO"`        // Provider admin network info
 
-	TCPInactivityTimeout 			time.Duration	`mapstructure:"TCP_INACTIVITY_TIMEOUT"`				// TCP inactivity timeout
-	TCPLongInactivityTimeout 	time.Duration	`mapstructure:"TCP_LONG_INACTIVITY_TIMEOUT"`	// TCP long inactivity timeout
+	TCPInactivityTimeout     time.Duration `mapstructure:"TCP_INACTIVITY_TIMEOUT"`      // TCP inactivity timeout
+	TCPLongInactivityTimeout time.Duration `mapstructure:"TCP_LONG_INACTIVITY_TIMEOUT"` // TCP long inactivity timeout
 }

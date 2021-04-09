@@ -62,7 +62,7 @@ type MsgRouter struct {
 	settings *settings.AppSettings
 }
 
-func NewMsgRouter(settings *settings.AppSettings) *MsgRouter{
+func NewMsgRouter(settings *settings.AppSettings) *MsgRouter {
 	return &MsgRouter{
 		settings: settings,
 	}
@@ -105,6 +105,8 @@ func (m *MsgRouter) msgRouter(w rest.ResponseWriter, r *rest.Request) {
 		handleProviderGetGroupCID(w, request)
 	case fcrmessages.ProviderAdminInitialiseKeyRequestType:
 		handleKeyManagement(w, request)
+	case fcrmessages.GatewayAdminEnrollGatewayRequestType:
+		handleAdminEnrollGateway(w, request, *m.settings)
 	default:
 		logging.Warn("Client Request: Unknown message type: %d", request.GetMessageType())
 		rest.Error(w, "Unknown message type", http.StatusBadRequest)
