@@ -31,6 +31,10 @@ func parseUint8(value string) uint8 {
 
 // Map sets the config for the Provider. NB: Providers start without a private key. Private keys are provided by a provider admin client.
 func Map(conf *viper.Viper) settings.AppSettings {
+	registerRefreshDuration, err := time.ParseDuration(conf.GetString("REGISTER_REFRESH_DURATION"))
+	if err != nil {
+		registerRefreshDuration = settings.DefaultRegisterRefreshDuration
+	}
 	tcpInactivityTimeout, err := time.ParseDuration(conf.GetString("TCP_INACTIVITY_TIMEOUT"))
 	if err != nil {
 		tcpInactivityTimeout = settings.DefaultTCPInactivityTimeout
@@ -56,7 +60,8 @@ func Map(conf *viper.Viper) settings.AppSettings {
 		ProviderID:     conf.GetString("PROVIDER_ID"),
 		ProviderSigAlg: parseUint8(conf.GetString("PROVIDER_SIG_ALG")),
 
-		RegisterAPIURL: conf.GetString("REGISTER_API_URL"),
+		RegisterAPIURL:          conf.GetString("REGISTER_API_URL"),
+		RegisterRefreshDuration: registerRefreshDuration,
 
 		ProviderAddress:        conf.GetString("PROVIDER_ADDRESS"),
 		ProviderRootSigningKey: conf.GetString("PROVIDER_ROOT_SIGNING_KEY"),
