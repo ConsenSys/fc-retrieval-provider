@@ -1,8 +1,9 @@
 PORT ?= 9030
 VERSION?=dev
 IMAGE?=consensys/fc-retrieval-provider
+COV?=80
 
-.PHONY: build build-dev start start-dev stop
+.PHONY: build build-dev start start-dev stop utest coverage
 
 default: clean build tag
 
@@ -35,6 +36,9 @@ stop:
 
 utest:
 	go test ./...
+
+coverage:
+	bash ./scripts/coverage.sh $(COV)
 
 uselocal:
 	cd scripts; bash use-local-repos.sh

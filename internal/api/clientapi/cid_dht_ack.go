@@ -14,7 +14,7 @@ func handleClientCIDGroupPublishDHTAckRequest(w rest.ResponseWriter, request *fc
 	// Get core structure
 	c := core.GetSingleInstance()
 
-	cid, gatewayID, err := fcrmessages.DeodeClientDHTOfferAckRequest(request)
+	cid, gatewayID, err := fcrmessages.DecodeClientDHTOfferAckRequest(request)
 	if err != nil {
 		s := "Client DHT Ack Request: Failed to decode payload."
 		log.Error(s + err.Error())

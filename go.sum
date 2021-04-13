@@ -20,6 +20,8 @@ github.com/ConsenSys/fc-retrieval-common v0.0.0-20210330062309-d8eae7225428 h1:H
 github.com/ConsenSys/fc-retrieval-common v0.0.0-20210330062309-d8eae7225428/go.mod h1:gREi7jqLyNMu4cl95XvUAky1Q2x60cc9Lac/NBBb4Wk=
 github.com/ConsenSys/fc-retrieval-common v0.0.0-20210331012500-bf32c4270d66 h1:u9OqAdRbiIuAjH4bc/pVA0ArYDURsH+jVLR4VB1tV8o=
 github.com/ConsenSys/fc-retrieval-common v0.0.0-20210331012500-bf32c4270d66/go.mod h1:gREi7jqLyNMu4cl95XvUAky1Q2x60cc9Lac/NBBb4Wk=
+github.com/ConsenSys/fc-retrieval-common v0.0.0-20210408140339-8cd544d421ab h1:i2/yYVQpc/bzPvdFH5ieOVBPtmv0iRZg2G/thJyubIc=
+github.com/ConsenSys/fc-retrieval-common v0.0.0-20210408140339-8cd544d421ab/go.mod h1:gREi7jqLyNMu4cl95XvUAky1Q2x60cc9Lac/NBBb4Wk=
 github.com/ConsenSys/fc-retrieval-register v0.0.0-20210302032234-5bbb23e0837c/go.mod h1:aLqRnp+fkTyxcXakuPlrtstMEIj7d5CtRBkG0LkE+4U=
 github.com/ConsenSys/fc-retrieval-register v0.0.0-20210304201730-61c8a9a0fd9f/go.mod h1:UMaruKBwdE6nkX7LntvF8iWdnlRXrBfKu9X7W16OjI4=
 github.com/ConsenSys/fc-retrieval-register v0.0.0-20210330063445-bde5093b793a h1:cH0xJi/VAlTRzuL/+xmGAFuqz2u1xERJFCw67czNAR4=

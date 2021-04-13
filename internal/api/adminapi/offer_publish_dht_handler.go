@@ -25,7 +25,7 @@ func handleProviderDHTPublishGroupCID(w rest.ResponseWriter, request *fcrmessage
 
 	cids, price, expiry, qos, err := fcrmessages.DecodeProviderAdminPublishDHTOfferRequest(request)
 	if err != nil {
-		logging.Error("Error in decoding the incoming request ", err.Error())
+		logging.Error("Error in decoding the incoming request %+v", err.Error())
 		return
 	}
 	if len(cids) == 0 || len(cids) != len(price) || len(cids) != len(expiry) || len(cids) != len(qos) {
@@ -37,7 +37,7 @@ func handleProviderDHTPublishGroupCID(w rest.ResponseWriter, request *fcrmessage
 	for i := 0; i < len(cids); i++ {
 		offer, err := cidoffer.NewCIDOffer(c.ProviderID, []cid.ContentID{cids[i]}, price[i], expiry[i], qos[i])
 		if err != nil {
-			logging.Error("Error in creating new offer ", err.Error())
+			logging.Error("Error in creating new offer %+v", err.Error())
 			return
 		}
 		// Sign the offer

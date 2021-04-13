@@ -1,6 +1,27 @@
 version: 2.1
 
 jobs:
+  utest:
+    docker:
+      - image: circleci/golang:1.15
+    working_directory: /go/src/github.com/ConsenSys/fc-retrieval-provider/
+    steps:
+      - checkout
+      - run: make utest
+
+  coverage:
+    environment:
+      CODE_COVERAGE: 0
+    docker:
+      - image: circleci/golang:1.15
+    working_directory: /go/src/github.com/ConsenSys/fc-retrieval-provider/
+    steps:
+      - checkout
+      - run:
+          name: Check code coverage
+          command: |
+            make coverage COV=$CODE_COVERAGE
+
   publishDocker:
     environment:
       IMAGE_NAME: consensys/fc-retrieval-provider
@@ -23,9 +44,15 @@ workflows:
   version: 2
   release:
     jobs:
+      - utest
+      - coverage:
+          requires:
+            - utest
       - publishDocker:
           filters:
             branches:
               only: main
           context:
             - dockerhub-quorumengineering-rw
+          requires:
+            - coverage
