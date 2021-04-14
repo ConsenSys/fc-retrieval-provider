@@ -27,7 +27,7 @@ import (
 	"github.com/ConsenSys/fc-retrieval-provider/internal/util/settings"
 )
 
-func handleAdminEnrollGateway(w rest.ResponseWriter, request *fcrmessages.FCRMessage, settings settings.AppSettings) {
+func handleEnrollGateway(w rest.ResponseWriter, request *fcrmessages.FCRMessage, settings settings.AppSettings) {
 	coreStructure := core.GetSingleInstance(&settings)
 	if coreStructure.ProviderPrivateKey == nil {
 		logging.Error("this provider hasn't been initialised by the admin")
@@ -53,23 +53,14 @@ func handleAdminEnrollGateway(w rest.ResponseWriter, request *fcrmessages.FCRMes
 		NetworkInfoClient:   networkInfoClient,
 		NetworkInfoAdmin:    networkInfoAdmin,
 	}
-	ok := registerGateway(newGateway, coreStructure)
-	if !ok {
+	newGatewayRegistered := registerGateway(newGateway, coreStructure)
+	if !newGatewayRegistered {
 		logging.Error("can not register a gateway")
 		return
 	}
 
 	// Construct a message
-	response, err := fcrmessages.EncodeGatewayAdminEnrollGatewayRequest(
-		nodeID,
-		address,
-		rootSigningKey,
-		signingKey,
-		regionCode,
-		networkInfoGateway,
-		networkInfoProvider,
-		networkInfoClient,
-		networkInfoAdmin)
+	response, err := fcrmessages.EncodeProviderAdminEnrollGatewayResponse(newGatewayRegistered)
 	if err != nil {
 		logging.Error(err.Error())
 		return
