@@ -4,7 +4,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ConsenSys/fc-retrieval-common/pkg/logging"
+  "github.com/ConsenSys/fc-retrieval-common/pkg/fcrtcpcomms"
+  "github.com/ConsenSys/fc-retrieval-common/pkg/logging"
 	"github.com/ConsenSys/fc-retrieval-register/pkg/register"
 	_ "github.com/joho/godotenv/autoload"
 
@@ -102,7 +103,7 @@ func updateRegisteredGateways(appSettings settings.AppSettings, c *core.Core) {
 			c.RegisteredGatewaysMapLock.RUnlock()
 			if update {
 				c.RegisteredGatewaysMapLock.Lock()
-				c.RegisteredGatewaysMap = make(map[string]register.RegisteredNode)
+				c.RegisteredGatewaysMap = make(map[string]fcrtcpcomms.RegisteredNode)
 				for _, gateway := range gateways {
 					logging.Info("Add to registered gateways map: nodeID=%+v", gateway.NodeID)
 					c.RegisteredGatewaysMap[strings.ToLower(gateway.NodeID)] = &gateway

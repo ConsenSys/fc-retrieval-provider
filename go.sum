@@ -18,12 +18,12 @@ github.com/ConsenSys/fc-retrieval-common v0.0.0-20210302005057-d525ae317c88/go.m
 github.com/ConsenSys/fc-retrieval-common v0.0.0-20210304200412-9f78f45afa9f/go.mod h1:An1y10UnDSLet+VArfPqeqQR+r2exJl+Bme+N8nRBE4=
 github.com/ConsenSys/fc-retrieval-common v0.0.0-20210331012500-bf32c4270d66 h1:u9OqAdRbiIuAjH4bc/pVA0ArYDURsH+jVLR4VB1tV8o=
 github.com/ConsenSys/fc-retrieval-common v0.0.0-20210331012500-bf32c4270d66/go.mod h1:gREi7jqLyNMu4cl95XvUAky1Q2x60cc9Lac/NBBb4Wk=
-github.com/ConsenSys/fc-retrieval-common v0.0.0-20210414092617-a179fe2cad15 h1:R+Q2w4RwbX1LVC7cGYTAaTVIT8acKjPSeOYBY5xRW80=
-github.com/ConsenSys/fc-retrieval-common v0.0.0-20210414092617-a179fe2cad15/go.mod h1:lFgeyKsoeaxulL7Q35GJ+oElKQcdPjRTuLk23AbF8nU=
+github.com/ConsenSys/fc-retrieval-common v0.0.0-20210415024948-f653e927071e h1:q44HmqETs3a2TpY88AWA9cCPDRlzEo+NgljDKJWKMlY=
+github.com/ConsenSys/fc-retrieval-common v0.0.0-20210415024948-f653e927071e/go.mod h1:pyNgHy/H3vYqcLIFZ14ihFaNbopkYuv/GZD9elKoKXw=
 github.com/ConsenSys/fc-retrieval-register v0.0.0-20210302032234-5bbb23e0837c/go.mod h1:aLqRnp+fkTyxcXakuPlrtstMEIj7d5CtRBkG0LkE+4U=
 github.com/ConsenSys/fc-retrieval-register v0.0.0-20210304201730-61c8a9a0fd9f/go.mod h1:UMaruKBwdE6nkX7LntvF8iWdnlRXrBfKu9X7W16OjI4=
-github.com/ConsenSys/fc-retrieval-register v0.0.0-20210412175300-220bf1ccc474 h1:k4mTPkiXE2pC66v41S9Jqd5pfhmiCn8IMUmk8zKRm9g=
-github.com/ConsenSys/fc-retrieval-register v0.0.0-20210412175300-220bf1ccc474/go.mod h1:ODi/c2DGtYN5sALsmc6jSMlquA/pjApo2+lbn2GIqow=
+github.com/ConsenSys/fc-retrieval-register v0.0.0-20210415025021-c08721f8ab2f h1:ZHN5ELV9UVKn8jq5+AOB/FW7PQneXw6+4OalaXCRZro=
+github.com/ConsenSys/fc-retrieval-register v0.0.0-20210415025021-c08721f8ab2f/go.mod h1:ODi/c2DGtYN5sALsmc6jSMlquA/pjApo2+lbn2GIqow=
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=
 github.com/PuerkitoBio/purell v1.1.0/go.mod h1:c11w/QuzBsJSee3cPx9rAFu61PvFxuPbtSwDGJws/X0=
 github.com/PuerkitoBio/purell v1.1.1/go.mod h1:c11w/QuzBsJSee3cPx9rAFu61PvFxuPbtSwDGJws/X0=

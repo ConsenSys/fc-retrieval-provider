@@ -1,18 +1,18 @@
 package core
 
 import (
-	"sync"
+  "sync"
 
-	"github.com/ConsenSys/fc-retrieval-common/pkg/cidoffer"
-	"github.com/ConsenSys/fc-retrieval-common/pkg/fcrcrypto"
-	"github.com/ConsenSys/fc-retrieval-common/pkg/fcrmessages"
-	"github.com/ConsenSys/fc-retrieval-common/pkg/fcrtcpcomms"
-	"github.com/ConsenSys/fc-retrieval-common/pkg/logging"
-	log "github.com/ConsenSys/fc-retrieval-common/pkg/logging"
-	"github.com/ConsenSys/fc-retrieval-common/pkg/nodeid"
-	"github.com/ConsenSys/fc-retrieval-provider/internal/offers"
-	"github.com/ConsenSys/fc-retrieval-provider/internal/util/settings"
-	"github.com/ConsenSys/fc-retrieval-register/pkg/register"
+  "github.com/ConsenSys/fc-retrieval-common/pkg/cidoffer"
+  "github.com/ConsenSys/fc-retrieval-common/pkg/fcrcrypto"
+  "github.com/ConsenSys/fc-retrieval-common/pkg/fcrmessages"
+  "github.com/ConsenSys/fc-retrieval-common/pkg/fcrtcpcomms"
+  "github.com/ConsenSys/fc-retrieval-common/pkg/logging"
+  log "github.com/ConsenSys/fc-retrieval-common/pkg/logging"
+  "github.com/ConsenSys/fc-retrieval-common/pkg/nodeid"
+
+  "github.com/ConsenSys/fc-retrieval-provider/internal/offers"
+  "github.com/ConsenSys/fc-retrieval-provider/internal/util/settings"
 )
 
 const (
@@ -41,7 +41,7 @@ type Core struct {
 	ProviderPrivateKeyVersion *fcrcrypto.KeyVersion
 
 	// RegisteredGatewaysMap stores mapping from gateway id (big int in string repr) to its registration info
-	RegisteredGatewaysMap     map[string]register.RegisteredNode
+	RegisteredGatewaysMap     map[string]fcrtcpcomms.RegisteredNode
 	RegisteredGatewaysMapLock sync.RWMutex
 
 	GatewayCommPool *fcrtcpcomms.CommunicationPool
@@ -89,7 +89,7 @@ func GetSingleInstance(confs ...*settings.AppSettings) *Core {
 			ProviderPrivateKey:        nil,
 			ProviderPrivateKeyVersion: nil,
 
-			RegisteredGatewaysMap:     make(map[string]register.RegisteredNode),
+			RegisteredGatewaysMap:     make(map[string]fcrtcpcomms.RegisteredNode),
 			RegisteredGatewaysMapLock: sync.RWMutex{},
 
 			GroupOffers:      offers.GetSingleInstance(),
