@@ -27,6 +27,7 @@ import (
 	"github.com/ConsenSys/fc-retrieval-common/pkg/fcrrestserver"
 	"github.com/ConsenSys/fc-retrieval-common/pkg/logging"
 	"github.com/ConsenSys/fc-retrieval-common/pkg/nodeid"
+
 	"github.com/ConsenSys/fc-retrieval-provider/internal/util/settings"
 )
 
@@ -77,6 +78,9 @@ type Core struct {
 	// Acknowledgement for every single cid offer sent (map from cid id -> map of gateway -> ack)
 	AcknowledgementMap     map[string](map[string]DHTAcknowledgement)
 	AcknowledgementMapLock sync.RWMutex
+
+	// List of Gateways that allow group CID offer to be published
+	GroupOfferGatewayIDs []*nodeid.NodeID
 }
 
 // Single instance of the provider
@@ -105,6 +109,7 @@ func GetSingleInstance(confs ...*settings.AppSettings) *Core {
 			NodeOfferMapLock:          sync.Mutex{},
 			AcknowledgementMap:        make(map[string](map[string]DHTAcknowledgement)),
 			AcknowledgementMapLock:    sync.RWMutex{},
+			GroupOfferGatewayIDs:      []*nodeid.NodeID{},
 		}
 	})
 	return instance
