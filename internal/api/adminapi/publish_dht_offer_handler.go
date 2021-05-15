@@ -18,13 +18,14 @@ package adminapi
 import (
 	"net/http"
 
+	"github.com/ant0ine/go-json-rest/rest"
+
 	"github.com/ConsenSys/fc-retrieval-common/pkg/cid"
 	"github.com/ConsenSys/fc-retrieval-common/pkg/cidoffer"
 	"github.com/ConsenSys/fc-retrieval-common/pkg/fcrmessages"
 	"github.com/ConsenSys/fc-retrieval-common/pkg/logging"
 	"github.com/ConsenSys/fc-retrieval-common/pkg/nodeid"
 	"github.com/ConsenSys/fc-retrieval-provider/internal/core"
-	"github.com/ant0ine/go-json-rest/rest"
 )
 
 // HandleProviderAdminPublishDHTOfferRequest handles provider admin publish dht offer request
@@ -80,7 +81,10 @@ func HandleProviderAdminPublishDHTOfferRequest(w rest.ResponseWriter, request *f
 	}
 
 	for _, cid := range cids {
-		gateways, err := c.RegisterMgr.GetGatewaysNearCID(&cid, 0)
+
+		//TODO: merge - remove nil;  (*cid.ContentID, int, []*nodeid.NodeID)
+		gateways, err := c.RegisterMgr.GetGatewaysNearCID(&cid, 0, nil)
+
 		if err != nil {
 			s := "Internal error: Fail to get gateways near the given cid."
 			logging.Error(s + err.Error())
