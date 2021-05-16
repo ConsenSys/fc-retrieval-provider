@@ -18,12 +18,13 @@ package main
 import (
 	"time"
 
+	_ "github.com/joho/godotenv/autoload"
+
 	"github.com/ConsenSys/fc-retrieval-common/pkg/fcrmessages"
 	"github.com/ConsenSys/fc-retrieval-common/pkg/fcrp2pserver"
 	"github.com/ConsenSys/fc-retrieval-common/pkg/fcrregistermgr"
 	"github.com/ConsenSys/fc-retrieval-common/pkg/fcrrestserver"
 	"github.com/ConsenSys/fc-retrieval-common/pkg/logging"
-	_ "github.com/joho/godotenv/autoload"
 
 	"github.com/ConsenSys/fc-retrieval-provider/config"
 	"github.com/ConsenSys/fc-retrieval-provider/internal/api/adminapi"
@@ -83,6 +84,7 @@ func main() {
 	c.P2PServer.
 		// gateway api
 		AddHandler(appSettings.BindGatewayAPI, fcrmessages.GatewayListDHTOfferRequestType, gatewayapi.HandleGatewayListDHTOfferRequest).
+		AddHandler(appSettings.BindGatewayAPI, fcrmessages.GatewayNotifyProviderGroupCIDOfferSupportedRequestType, gatewayapi.HandleGatewayNotifyProviderGroupCIDOfferSupportRequest).
 		// provider api
 		AddRequester(fcrmessages.ProviderPublishGroupOfferRequestType, providerapi.RequestProviderPublishGroupOffer).
 		AddRequester(fcrmessages.ProviderPublishDHTOfferRequestType, providerapi.RequestProviderPublishDHTOffer)

@@ -80,7 +80,7 @@ type Core struct {
 	AcknowledgementMapLock sync.RWMutex
 
 	// List of Gateways that allow group CID offer to be published
-	GroupOfferGatewayIDs []*nodeid.NodeID
+	GroupOfferGatewayIDs []nodeid.NodeID
 }
 
 // Single instance of the provider
@@ -109,7 +109,7 @@ func GetSingleInstance(confs ...*settings.AppSettings) *Core {
 			NodeOfferMapLock:          sync.Mutex{},
 			AcknowledgementMap:        make(map[string](map[string]DHTAcknowledgement)),
 			AcknowledgementMapLock:    sync.RWMutex{},
-			GroupOfferGatewayIDs:      []*nodeid.NodeID{},
+			GroupOfferGatewayIDs:      []nodeid.NodeID{},
 		}
 	})
 	return instance
