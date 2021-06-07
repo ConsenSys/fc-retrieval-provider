@@ -1,3 +1,7 @@
+/*
+Package providerapi - set of remote API used to call a Retrieval Provider, grouped to a specific caller type - Retrieval Provider.
+All calls from FileCoin Secondary Retrieval network nodes of type Retrieval Provider are going to API handlers in this package.
+*/
 package providerapi
 
 /*

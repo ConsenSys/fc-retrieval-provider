@@ -1,3 +1,7 @@
+/*
+Package clientapi - set of remote API used to call a Retrieval Provider, grouped to a specific caller type - Retrieval Client.
+All calls from FileCoin Secondary Retrieval network nodes of type Retrieval Client are going to API handlers in this package.
+*/
 package clientapi
 
 /*
@@ -18,11 +22,12 @@ package clientapi
 import (
 	"net/http"
 
+	"github.com/ant0ine/go-json-rest/rest"
+
 	"github.com/ConsenSys/fc-retrieval-common/pkg/cidoffer"
 	"github.com/ConsenSys/fc-retrieval-common/pkg/fcrmessages"
 	"github.com/ConsenSys/fc-retrieval-common/pkg/logging"
 	"github.com/ConsenSys/fc-retrieval-provider/internal/core"
-	"github.com/ant0ine/go-json-rest/rest"
 )
 
 // HandleClientDHTOfferAckRequest is used to handle client request for ack a dht offer

@@ -1,3 +1,7 @@
+/*
+Package core - structure which represents a Provider's current state, including setting, configuration, references to
+all running Provider APIs of this instance.
+*/
 package core
 
 /*

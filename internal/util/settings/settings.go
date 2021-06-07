@@ -1,3 +1,6 @@
+/*
+Package settings - holds configuration specific to a Retrieval Provider node.
+*/
 package settings
 
 /*

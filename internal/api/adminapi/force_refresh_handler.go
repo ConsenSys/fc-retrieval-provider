@@ -1,3 +1,8 @@
+/*
+Package adminapi - set of remote API used to call a Retrieval Provider, grouped to a specific caller type - Retrieval Admin.
+All calls from FileCoin Secondary Retrieval network nodes of types Retrieval Provider Admin and Retrieval Gateway Admin
+are going to API handlers in this package.
+*/
 package adminapi
 
 /*
@@ -18,10 +23,11 @@ package adminapi
 import (
 	"net/http"
 
+	"github.com/ant0ine/go-json-rest/rest"
+
 	"github.com/ConsenSys/fc-retrieval-common/pkg/fcrmessages"
 	"github.com/ConsenSys/fc-retrieval-common/pkg/logging"
 	"github.com/ConsenSys/fc-retrieval-provider/internal/core"
-	"github.com/ant0ine/go-json-rest/rest"
 )
 
 // HandleProviderAdminForceRefreshRequest handles admin force refresh request

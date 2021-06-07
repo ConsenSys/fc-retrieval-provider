@@ -1,3 +1,8 @@
+/*
+Package util - contains a collection of different functions used across all Retrieval Provider instances.
+
+Utility function like ones to work with time, process lifetime and binary versioning.
+*/
 package util
 
 // Copyright (C) 2020 ConsenSys Software Inc

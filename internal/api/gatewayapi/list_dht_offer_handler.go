@@ -1,3 +1,7 @@
+/*
+Package gatewayapi - set of remote API used to call a Retrieval Provider, grouped to a specific caller type - Retrieval Gateway.
+All calls from FileCoin Secondary Retrieval network nodes of type Retrieval Gateway are going to API handlers in this package.
+*/
 package gatewayapi
 
 /*

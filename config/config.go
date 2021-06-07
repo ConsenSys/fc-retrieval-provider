@@ -1,3 +1,6 @@
+/*
+Package config - combines operations used to setup parameters for Retrieval Provider node in FileCoin network
+*/
 package config
 
 import (
@@ -8,9 +11,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/ConsenSys/fc-retrieval-provider/internal/util/settings"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+
+	"github.com/ConsenSys/fc-retrieval-provider/internal/util/settings"
 )
 
 // NewConfig creates a new configuration

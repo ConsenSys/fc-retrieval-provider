@@ -1,3 +1,12 @@
+/*
+Package main - program entry point for a Retrieval Provider node.
+
+Retrieval Provider is a type of nodes in FileCoin blockchain network, which serves purpose of being a way to
+communicate with a Storage Miner.
+
+Retrieval Provider is used by Retrieval Gateways in order to get their files back from the particular Storage Miner
+in the network.
+*/
 package main
 
 /*
