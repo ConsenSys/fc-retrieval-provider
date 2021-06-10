@@ -14,7 +14,8 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
-	"github.com/ConsenSys/fc-retrieval-provider/internal/util/settings"
+  "github.com/ConsenSys/fc-retrieval-common/pkg/logging"
+  "github.com/ConsenSys/fc-retrieval-provider/internal/util/settings"
 )
 
 // NewConfig creates a new configuration
@@ -108,7 +109,7 @@ func Map(conf *viper.Viper) settings.AppSettings {
 	}
 }
 
-func defineFlags(conf *viper.Viper) {
+func defineFlags(_ *viper.Viper) {
 	flag.String("host", "0.0.0.0", "help message for host")
 	flag.String("ip", "127.0.0.1", "help message for ip")
 }
@@ -116,7 +117,9 @@ func defineFlags(conf *viper.Viper) {
 func bindFlags(conf *viper.Viper) {
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
 	pflag.Parse()
-	conf.BindPFlags(pflag.CommandLine)
+  if err := conf.BindPFlags(pflag.CommandLine); err != nil {
+    logging.Error("can't bind a command line flag")
+  }
 }
 
 func setValues(conf *viper.Viper) {

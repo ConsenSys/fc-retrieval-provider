@@ -123,12 +123,12 @@ func HandleGatewayListDHTOfferRequest(reader *fcrp2pserver.FCRServerReader, writ
 	}
 	// Verify the acks
 	if acks.Verify(pubKey) != nil {
-		return errors.New("Fail to verify the acks")
+		return errors.New("fail to verify the acks")
 	}
 
 	acknowledgements, err := fcrmessages.DecodeGatewayListDHTOfferAck(acks)
 	if len(acknowledgements) != len(msgs) {
-		return errors.New("Invalid response")
+		return errors.New("invalid response")
 	}
 	for i, acknowledgement := range acknowledgements {
 		// TODO: Check nonce.
@@ -141,7 +141,7 @@ func HandleGatewayListDHTOfferRequest(reader *fcrp2pserver.FCRServerReader, writ
 			return err
 		}
 		if !ok {
-			return errors.New("Verification failed")
+			return errors.New("verification failed")
 		}
 		// It's okay, add to acknowledgements map
 		_, _, sentOffers, err := fcrmessages.DecodeProviderPublishDHTOfferRequest(&msgs[i])

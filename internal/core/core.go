@@ -80,11 +80,11 @@ type Core struct {
 	OffersMgr *fcroffermgr.FCROfferMgr
 
 	// Node to offer map, TODO: Use a manager
-	NodeOfferMap     map[string]([]cidoffer.CIDOffer)
+	NodeOfferMap     map[string][]cidoffer.CIDOffer
 	NodeOfferMapLock sync.Mutex
 
 	// Acknowledgement for every single cid offer sent (map from cid id -> map of gateway -> ack)
-	AcknowledgementMap     map[string](map[string]DHTAcknowledgement)
+	AcknowledgementMap     map[string]map[string]DHTAcknowledgement
 	AcknowledgementMapLock sync.RWMutex
 
 	// List of Gateways that allow group CID offer to be published
@@ -113,9 +113,9 @@ func GetSingleInstance(confs ...*settings.AppSettings) *Core {
 			ProviderPrivateKey:        nil,
 			ProviderPrivateKeyVersion: nil,
 			OffersMgr:                 fcroffermgr.NewFCROfferMgr(),
-			NodeOfferMap:              make(map[string]([]cidoffer.CIDOffer)),
+			NodeOfferMap:              make(map[string][]cidoffer.CIDOffer),
 			NodeOfferMapLock:          sync.Mutex{},
-			AcknowledgementMap:        make(map[string](map[string]DHTAcknowledgement)),
+			AcknowledgementMap:        make(map[string]map[string]DHTAcknowledgement),
 			AcknowledgementMapLock:    sync.RWMutex{},
 			GroupOfferGatewayIDs:      []nodeid.NodeID{},
 			PaymentMgr:                nil,

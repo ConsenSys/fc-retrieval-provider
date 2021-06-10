@@ -24,7 +24,7 @@ import (
 	"github.com/ConsenSys/fc-retrieval-provider/internal/core"
 )
 
-func HandleGatewayNotifyProviderGroupCIDOfferSupportRequest(reader *fcrp2pserver.FCRServerReader, writer *fcrp2pserver.FCRServerWriter, request *fcrmessages.FCRMessage) error {
+func HandleGatewayNotifyProviderGroupCIDOfferSupportRequest(_ *fcrp2pserver.FCRServerReader, writer *fcrp2pserver.FCRServerWriter, request *fcrmessages.FCRMessage) error {
 	// Get core structure
 	c := core.GetSingleInstance()
 

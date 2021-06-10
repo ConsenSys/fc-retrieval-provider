@@ -60,7 +60,9 @@ func main() {
 	c.RegisterMgr = fcrregistermgr.NewFCRRegisterMgr(appSettings.RegisterAPIURL, false, true, 10*time.Second)
 
 	// Start register manager's routine
-	c.RegisterMgr.Start()
+  if err := c.RegisterMgr.Start(); err != nil {
+    logging.Error("error starting Register Manager: %s", err.Error())
+  }
 
 	// Create REST Server
 	c.RESTServer = fcrrestserver.NewFCRRESTServer(

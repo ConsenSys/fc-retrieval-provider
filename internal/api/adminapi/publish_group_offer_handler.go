@@ -16,17 +16,18 @@ package adminapi
  */
 
 import (
-	"net/http"
+  "net/http"
 
-	"github.com/ConsenSys/fc-retrieval-common/pkg/cidoffer"
-	"github.com/ConsenSys/fc-retrieval-common/pkg/fcrmessages"
-	"github.com/ConsenSys/fc-retrieval-common/pkg/logging"
-	"github.com/ConsenSys/fc-retrieval-common/pkg/nodeid"
-	"github.com/ConsenSys/fc-retrieval-provider/internal/core"
-	"github.com/ant0ine/go-json-rest/rest"
+  "github.com/ant0ine/go-json-rest/rest"
+
+  "github.com/ConsenSys/fc-retrieval-common/pkg/cidoffer"
+  "github.com/ConsenSys/fc-retrieval-common/pkg/fcrmessages"
+  "github.com/ConsenSys/fc-retrieval-common/pkg/logging"
+  "github.com/ConsenSys/fc-retrieval-common/pkg/nodeid"
+  "github.com/ConsenSys/fc-retrieval-provider/internal/core"
 )
 
-// HndleProviderAdminPublishGroupOfferRequest handles provider admin publish group offer request
+// HandleProviderAdminPublishGroupOfferRequest handles provider admin publish group offer request
 func HandleProviderAdminPublishGroupOfferRequest(w rest.ResponseWriter, request *fcrmessages.FCRMessage) {
 	// Get core structure
 	c := core.GetSingleInstance()
@@ -54,15 +55,17 @@ func HandleProviderAdminPublishGroupOfferRequest(w rest.ResponseWriter, request 
 		return
 	}
 	// Sign the offer
-	if offer.Sign(c.ProviderPrivateKey, c.ProviderPrivateKeyVersion) != nil {
+	if signErr := offer.Sign(c.ProviderPrivateKey, c.ProviderPrivateKeyVersion); signErr != nil {
 		s := "Fail to sign offer."
-		logging.Error(s + err.Error())
+		logging.Error(s + signErr.Error())
 		rest.Error(w, s, http.StatusBadRequest)
 		return
 	}
 
 	// Add offer to storage
-	c.OffersMgr.AddGroupOffer(offer)
+	if addErr := c.OffersMgr.AddGroupOffer(offer); addErr != nil {
+	  logging.Error("can't add group offer: %v", offer)
+  }
 
 	// Get all gateways
 	gateways := c.RegisterMgr.GetAllGateways()
@@ -91,5 +94,8 @@ func HandleProviderAdminPublishGroupOfferRequest(w rest.ResponseWriter, request 
 		logging.Error("Error in signing the response.")
 		return
 	}
-	w.WriteJson(response)
+
+  if writeErr := w.WriteJson(response); writeErr != nil {
+    logging.Error("can't write JSON during HandleProviderAdminPublishGroupOfferRequest %s", writeErr.Error())
+  }
 }

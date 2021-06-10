@@ -16,12 +16,13 @@ package adminapi
  */
 
 import (
-	"net/http"
+  "net/http"
 
-	"github.com/ConsenSys/fc-retrieval-common/pkg/fcrmessages"
-	"github.com/ConsenSys/fc-retrieval-common/pkg/logging"
-	"github.com/ConsenSys/fc-retrieval-provider/internal/core"
-	"github.com/ant0ine/go-json-rest/rest"
+  "github.com/ant0ine/go-json-rest/rest"
+
+  "github.com/ConsenSys/fc-retrieval-common/pkg/fcrmessages"
+  "github.com/ConsenSys/fc-retrieval-common/pkg/logging"
+  "github.com/ConsenSys/fc-retrieval-provider/internal/core"
 )
 
 // HandleProviderAdminInitialiseKeyRequest handles provider admin initialise key request
@@ -51,12 +52,14 @@ func HandleProviderAdminInitialiseKeyRequest(w rest.ResponseWriter, request *fcr
 	}
 
 	// Sign message
-	if response.Sign(c.ProviderPrivateKey, c.ProviderPrivateKeyVersion) != nil {
+	if signErr := response.Sign(c.ProviderPrivateKey, c.ProviderPrivateKeyVersion); signErr != nil {
 		s := "Internal error: Fail to sign message."
-		logging.Error(s + err.Error())
+		logging.Error(s + signErr.Error())
 		rest.Error(w, s, http.StatusInternalServerError)
 		return
 	}
 	// Send message
-	w.WriteJson(response)
+  if writeErr := w.WriteJson(response); writeErr != nil {
+    logging.Error("can't write JSON during HandleProviderAdminInitialiseKeyRequest %s", writeErr.Error())
+  }
 }

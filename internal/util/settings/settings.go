@@ -29,7 +29,7 @@ const DefaultTCPInactivityTimeout = 100 * time.Millisecond
 // DefaultLongTCPInactivityTimeout is the default timeout for long TCP inactivity. This timeout should never be ignored.
 const DefaultLongTCPInactivityTimeout = 5000 * time.Millisecond
 
-// DefaultRefreshDuration is the default register refresh duration
+// DefaultRegisterRefreshDuration is the default register refresh duration
 const DefaultRegisterRefreshDuration = 5000 * time.Millisecond
 
 // AppSettings defines the server configuraiton
@@ -63,7 +63,7 @@ type AppSettings struct {
 	TCPInactivityTimeout     time.Duration `mapstructure:"TCP_INACTIVITY_TIMEOUT"`      // TCP inactivity timeout
 	TCPLongInactivityTimeout time.Duration `mapstructure:"TCP_LONG_INACTIVITY_TIMEOUT"` // TCP long inactivity timeout
 
-	SearchPrice *big.Int `mapstructure:SEARCH_PRICE`
-	OfferPrice  *big.Int `mapstructure:OFFER_PRICE`
-	TopupAmount *big.Int `mapstructure:TOPUP_AMOUNT`
+	SearchPrice *big.Int `mapstructure:"SEARCH_PRICE"`
+	OfferPrice  *big.Int `mapstructure:"OFFER_PRICE"`
+	TopupAmount *big.Int `mapstructure:"TOPUP_AMOUNT"`
 }

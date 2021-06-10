@@ -67,11 +67,14 @@ func HandleClientDHTOfferAckRequest(w rest.ResponseWriter, request *fcrmessages.
 	}
 
 	// Sign message
-	if response.Sign(c.ProviderPrivateKey, c.ProviderPrivateKeyVersion) != nil {
+	if signErr := response.Sign(c.ProviderPrivateKey, c.ProviderPrivateKeyVersion); signErr != nil {
 		s := "Internal error: Fail to sign message."
-		logging.Error(s + err.Error())
+		logging.Error(s + signErr.Error())
 		rest.Error(w, s, http.StatusInternalServerError)
 		return
 	}
-	w.WriteJson(response)
+
+  if writeErr := w.WriteJson(response); writeErr != nil {
+    logging.Error("can't write JSON during HandleClientDHTOfferAckRequest %s", writeErr.Error())
+  }
 }

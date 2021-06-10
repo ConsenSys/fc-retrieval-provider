@@ -65,9 +65,9 @@ func HandleProviderAdminPublishDHTOfferRequest(w rest.ResponseWriter, request *f
 			return
 		}
 		// Sign the offer
-		if offer.Sign(c.ProviderPrivateKey, c.ProviderPrivateKeyVersion) != nil {
+		if signErr := offer.Sign(c.ProviderPrivateKey, c.ProviderPrivateKeyVersion); signErr != nil {
 			s := "Internal error: Fail to sign offer."
-			logging.Error(s + err.Error())
+			logging.Error(s + signErr.Error())
 			rest.Error(w, s, http.StatusInternalServerError)
 			return
 		}
@@ -77,11 +77,13 @@ func HandleProviderAdminPublishDHTOfferRequest(w rest.ResponseWriter, request *f
 
 	// Add offers
 	for _, offer := range offers {
-		c.OffersMgr.AddDHTOffer(&offer)
+		if err := c.OffersMgr.AddDHTOffer(&offer); err != nil {
+      logging.Error("can't add DHT offer: %v", offer)
+    }
 	}
 
-	for _, cid := range cids {
-		gateways, err := c.RegisterMgr.GetGatewaysNearCID(&cid, 16, nil)
+	for _, contendID := range cids {
+		gateways, err := c.RegisterMgr.GetGatewaysNearCID(&contendID, 16, nil)
 		if err != nil {
 			s := "Internal error: Fail to get gateways near the given cid."
 			logging.Error(s + err.Error())
@@ -115,5 +117,8 @@ func HandleProviderAdminPublishDHTOfferRequest(w rest.ResponseWriter, request *f
 		logging.Error("Error in signing message.")
 		return
 	}
-	w.WriteJson(response)
+
+  if writeErr := w.WriteJson(response); writeErr != nil {
+    logging.Error("can't write JSON during HandleProviderAdminPublishDHTOfferRequest %s", writeErr.Error())
+  }
 }

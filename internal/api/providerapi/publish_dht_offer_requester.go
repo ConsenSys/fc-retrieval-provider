@@ -34,15 +34,15 @@ import (
 func RequestProviderPublishDHTOffer(reader *fcrp2pserver.FCRServerReader, writer *fcrp2pserver.FCRServerWriter, args ...interface{}) (*fcrmessages.FCRMessage, error) {
 	// Get parameters
 	if len(args) != 2 {
-		return nil, errors.New("Wrong arguments")
+		return nil, errors.New("wrong arguments")
 	}
 	offers, ok := args[0].([]cidoffer.CIDOffer)
 	if !ok {
-		return nil, errors.New("Wrong arguments")
+		return nil, errors.New("wrong arguments")
 	}
 	gatewayID, ok := args[1].(*nodeid.NodeID)
 	if !ok {
-		return nil, errors.New("Wrong arguments")
+		return nil, errors.New("wrong arguments")
 	}
 
 	// Get the core structure
@@ -56,7 +56,7 @@ func RequestProviderPublishDHTOffer(reader *fcrp2pserver.FCRServerReader, writer
 	}
 	// Sign the request
 	if request.Sign(c.ProviderPrivateKey, c.ProviderPrivateKeyVersion) != nil {
-		return nil, errors.New("Internal error in signing the message")
+		return nil, errors.New("internal error in signing the message")
 	}
 	// Send the request
 	err = writer.Write(request, c.Settings.TCPInactivityTimeout)
@@ -73,15 +73,15 @@ func RequestProviderPublishDHTOffer(reader *fcrp2pserver.FCRServerReader, writer
 	// Get the gateway's signing key
 	gatewayInfo := c.RegisterMgr.GetGateway(gatewayID)
 	if gatewayInfo == nil {
-		return nil, errors.New("Gateway information not found")
+		return nil, errors.New("gateway information not found")
 	}
 	pubKey, err := gatewayInfo.GetSigningKey()
 	if err != nil {
-		return nil, errors.New("Fail to obatin the public key")
+		return nil, errors.New("fail to obatin the public key")
 	}
 
 	if response.Verify(pubKey) != nil {
-		return nil, errors.New("Fail to verify the response")
+		return nil, errors.New("fail to verify the response")
 	}
 
 	// Verify the acks
@@ -92,10 +92,10 @@ func RequestProviderPublishDHTOffer(reader *fcrp2pserver.FCRServerReader, writer
 	}
 	ok, err = fcrcrypto.VerifyMessage(pubKey, sig, request)
 	if err != nil {
-		return nil, errors.New("Internal error in verifying ack")
+		return nil, errors.New("internal error in verifying ack")
 	}
 	if !ok {
-		return nil, errors.New("Fail to verify the ack")
+		return nil, errors.New("fail to verify the ack")
 	}
 
 	// Add offer to ack map and storage
