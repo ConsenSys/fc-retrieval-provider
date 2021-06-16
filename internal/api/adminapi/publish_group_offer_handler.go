@@ -70,7 +70,7 @@ func HandleProviderAdminPublishGroupOfferRequest(w rest.ResponseWriter, request 
 	// Get all gateways
 	gateways := c.RegisterMgr.GetAllGateways()
 	for _, gateway := range gateways {
-		gatewayID, err := nodeid.NewNodeIDFromHexString(gateway.NodeID)
+		gatewayID, err := nodeid.NewNodeIDFromHexString(gateway.GetNodeID())
 		if err != nil {
 			s := "Fail to generate node id."
 			logging.Error(s + err.Error())

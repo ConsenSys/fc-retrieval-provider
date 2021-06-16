@@ -91,8 +91,8 @@ func HandleProviderAdminPublishDHTOfferRequest(w rest.ResponseWriter, request *f
 			return
 		}
 		for _, gw := range gateways {
-			logging.Info("Published to: %v", gw.NodeID)
-			gatewayID, err := nodeid.NewNodeIDFromHexString(gw.NodeID)
+			logging.Info("Published to: %v", gw.GetNodeID())
+			gatewayID, err := nodeid.NewNodeIDFromHexString(gw.GetNodeID())
 			if err != nil {
 				s := "Fail to generate node id."
 				logging.Error(s + err.Error())
