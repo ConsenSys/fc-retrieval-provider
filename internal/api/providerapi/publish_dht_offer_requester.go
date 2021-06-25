@@ -90,7 +90,7 @@ func RequestProviderPublishDHTOffer(reader *fcrp2pserver.FCRServerReader, writer
 	if err != nil {
 		return nil, err
 	}
-	ok, err = fcrcrypto.VerifyMessage(pubKey, sig, request)
+	ok, err = fcrcrypto.VerifyMessage(pubKey, sig, request.GetMessageBody())
 	if err != nil {
 		return nil, errors.New("internal error in verifying ack")
 	}

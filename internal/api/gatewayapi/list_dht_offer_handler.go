@@ -136,7 +136,7 @@ func HandleGatewayListDHTOfferRequest(reader *fcrp2pserver.FCRServerReader, writ
 		if err != nil {
 			return err
 		}
-		ok, err := fcrcrypto.VerifyMessage(pubKey, signature, msgs[i])
+		ok, err := fcrcrypto.VerifyMessage(pubKey, signature, msgs[i].GetMessageBody())
 		if err != nil {
 			return err
 		}
